@@ -19,4 +19,10 @@ if (!require("argparse")) {
 }
 
 ## Args 
-options <- commandArgs(trailingOnly = TRUE)
+myargs <- commandArgs(trailingOnly = TRUE)
+hola<-myargs[1]
+test<-myargs[2]
+
+print(hola)
+print(test)
+
