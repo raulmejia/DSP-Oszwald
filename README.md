@@ -1,3 +1,3 @@
 This repository sores code to analyze DSP data 
 
-The master script is named "DSP_Orchester.R" this will call other modules when he need them.
+The master script is named "DSP_Orchester.R" this program will call other modules when he need them.
