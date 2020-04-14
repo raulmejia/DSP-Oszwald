@@ -1,4 +1,10 @@
 ###################################
+#### This script is the master program in https://github.com/raulmejia/DSP-Oszwald
+#### Author: Raúl Mejía
+#### The aim is to coordinate DSP data analysis 
+###################################
+
+###################################
 #### Required libraries
 ###################################
 if (!require("BiocManager")) {
@@ -17,12 +23,73 @@ if (!require("argparse")) {
   install.packages("argparse", ask =FALSE)
   library("argparse")
 }
+if (!require("ggfortify")) {
+  install.packages("ggfortify", ask =FALSE)
+  library("ggfortify")
+}
 
-## Args 
+
+###################################
+#### Data given by the user
+###################################
 myargs <- commandArgs(trailingOnly = TRUE)
-hola<-myargs[1]
-test<-myargs[2]
+path_to_your_QC_file <-myargs[1] # Data must be separated by tab (it doesn't matter if the file has the .csv extension or other one)
+path_to_your_QC_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/QC_All_Data_Human_IO_RNA.csv"
 
-print(hola)
-print(test)
+path_to_your_HK_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
+
+###################################
+#### Reading the data
+###################################
+QC_table <- read.table(path_to_your_QC_file , sep = "\t", header = TRUE)
+HK_table <- read.table(path_to_your_HK_file , sep = "\t", header = TRUE)
+
+QC_matrix <- QC_table[ ,10:93]
+HK_matrix <- HK_table[ ,10:93]
+
+mode(QC_table[,'ROI_ID']) <- "character"
+mode(HK_table[,'ROI_ID']) <- "character"
+
+## Looking for batch effect
+autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID', label =TRUE)
+autoplot( prcomp( HK_matrix ), data = HK_table, colour= 'Scan_ID', label =TRUE)
+
+# We can observe a batch effect
+# Plot the house keeping genes data
+HK_table[1:4,1:10]
+QC_table[1:4,1:10]
+
+###
+autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID', shape='ROI_ID' ,label =TRUE)
+
+autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'ROI_ID', shape='Scan_ID' ,label =TRUE)
+autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'ROI_ID', shape='Scan_ID')
+
+autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Species' , shape= 'extra_column', label =TRUE)
+
+str(QC_matrix)
+QC_table[1:4,1:14]
+QC_table[1:4,1:10]
+QC_table[1:4,1:9]
+
+dim(QC_table)
+72/6
+
+#############
+## Looking for batch effect
+#############
+
+
+
+str(iris[,1:4])
+
+data(iris)
+head(iris)
+dim(iris)
+extra_column <-c(rep("green",30),rep("yellow",30),rep("black",30),rep("purple",30),rep("brown",30))
+iris2 <- cbind(iris, extra_column)
+head(iris2)
+
+autoplot( prcomp(iris2[,1:4]), data = iris2, colour= 'Species' )
+autoplot( prcomp(iris2[,1:4]), data = iris2, colour= 'Species' , shape= 'extra_column', label =TRUE)
 
