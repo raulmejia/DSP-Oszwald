@@ -3,7 +3,6 @@
 #### Author: Raúl Mejía
 #### The aim is to coordinate DSP data analysis 
 ###################################
-
 ###################################
 #### Required libraries
 ###################################
@@ -28,7 +27,6 @@ if (!require("ggfortify")) {
   library("ggfortify")
 }
 
-
 ###################################
 #### Data given by the user
 ###################################
@@ -37,44 +35,47 @@ path_to_your_QC_file <-myargs[1] # Data must be separated by tab (it doesn't mat
 path_to_your_QC_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/QC_All_Data_Human_IO_RNA.csv"
 
 path_to_your_HK_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
+path_to_your_AreaNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
+path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
 
 ###################################
 #### Reading the data
 ###################################
-QC_table <- read.table(path_to_your_QC_file , sep = "\t", header = TRUE)
-HK_table <- read.table(path_to_your_HK_file , sep = "\t", header = TRUE)
+QC_table <- read.table( path_to_your_QC_file , sep = "\t", header = TRUE)
+HK_table <- read.table( path_to_your_HK_file , sep = "\t", header = TRUE)
+AreaNorm_table <- read.table( path_to_your_AreaNorm_file , sep = "\t", header = TRUE)
+SNRNorm_table <- read.table( path_to_your_SNRNorm_file , sep = "\t", header = TRUE)
 
-QC_matrix <- QC_table[ ,10:93]
-HK_matrix <- HK_table[ ,10:93]
+dim(QC_table)[2]
+QC_matrix <- QC_table[ ,10:dim(QC_table)[2]]
+HK_matrix <- HK_table[ ,10:dim(HK_table)[2]]
+AreaNorm_matrix <- AreaNorm_table[ ,10:dim(AreaNorm_table)[2]]
+SNRNorm_matrix <- SNRNorm_table[ ,10:dim( SNRNorm_table )[2]]
 
 mode(QC_table[,'ROI_ID']) <- "character"
 mode(HK_table[,'ROI_ID']) <- "character"
+mode(AreaNorm_table[,'ROI_ID']) <- "character"
+mode(SNRNorm_table[,'ROI_ID']) <- "character"
 
 ## Looking for batch effect
-autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID', label =TRUE)
-autoplot( prcomp( HK_matrix ), data = HK_table, colour= 'Scan_ID', label =TRUE)
+autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID') +
+  ggtitle("QC data")
+
+autoplot( prcomp( HK_matrix ), data = HK_table, colour= 'Scan_ID') +
+  ggtitle("Normalized trough HK")
+
+autoplot( prcomp( AreaNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+  ggtitle("Area Normalized")
+
+autoplot( prcomp( SNRNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+  ggtitle("SNR Normalized")
+
 
 # We can observe a batch effect
 # Plot the house keeping genes data
-HK_table[1:4,1:10]
-QC_table[1:4,1:10]
+
 
 ###
-autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID', shape='ROI_ID' ,label =TRUE)
-
-autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'ROI_ID', shape='Scan_ID' ,label =TRUE)
-autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'ROI_ID', shape='Scan_ID')
-
-autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Species' , shape= 'extra_column', label =TRUE)
-
-str(QC_matrix)
-QC_table[1:4,1:14]
-QC_table[1:4,1:10]
-QC_table[1:4,1:9]
-
-dim(QC_table)
-72/6
-
 #############
 ## Looking for batch effect
 #############
