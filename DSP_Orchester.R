@@ -93,22 +93,40 @@ autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
 mymatrix <- as.matrix(SNRNorm_matrix)
 mymatrix <- as.matrix(QC_matrix)
 mymatrix <- as.matrix( NucleiNorm_matrix)
+mymatrix <- as.matrix( HK_matrix)
+
 pheno <- annot[, c("Morph.cat..Andre.","Histology.number")]
-pheno <- annot[, c("Morph.cat..Andre.","Scan_ID")]
+#pheno <- annot[, c("Morph.cat..Andre.","Scan_ID")]
 head(annot)
 colnames(pheno) <- c("subgroups","batch")
 ## Fixing colnames 
-rownames(pheno) <- annot[,"Unique_ID"]
-rownames( mymatrix ) <- annot[,"Unique_ID"]
+rownames(pheno) <- annot[,"Unique_ID"] ; rownames( mymatrix ) <- annot[,"Unique_ID"]
 #
 #
 pheno$batch <- as.factor(pheno$batch)
 batch<-pheno$batch
 modcombat<-model.matrix(~1, data=pheno)
-combat_mydata= ComBat(dat = mymatrix , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+combat_mydata= ComBat(dat = t(mymatrix) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
+modcombat<-model.matrix(~subgroups, data=pheno)
+combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
+autoplot( prcomp( t(combat_mydata) ), data = HK_table, colour= 'Scan_ID') +
+  ggtitle("SNR Normalized")
+autoplot( prcomp( t(combat_mydata) ), data = pheno, colour= 'subgroups' , label = TRUE, label.size = 3) +
+  ggtitle("SNR Normalized")
 
+autoplot(prcomp( NucleiNorm_matrix ), data = pheno, colour= 'subgroups') +
+  ggtitle("Nuclei Normalized")
+autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+  ggtitle("Nuclei Normalized")
+
+str(combat_mydata)
+head(combat_mydata)
+
+arab <- readRDS("/media/rmejia/mountme88/Projects/DSP/Data/toy/arabidopsis.RDS") 
+str(arab)
+class()
 
 class(mymatrix)
 mydf[1:4,1:10]
