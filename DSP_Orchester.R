@@ -26,6 +26,10 @@ if (!require("ggfortify")) {
   install.packages("ggfortify", ask =FALSE)
   library("ggfortify")
 }
+if (!require("sva")) {
+  BiocManager::install("sva", ask =FALSE)
+  library("sva")
+}
 
 ###################################
 #### Data given by the user
@@ -37,7 +41,9 @@ path_to_your_QC_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_f
 path_to_your_HK_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 path_to_your_AreaNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
 path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
+path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
 
+path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/Annotation_file_Symplified.csv"
 ###################################
 #### Reading the data
 ###################################
@@ -45,17 +51,21 @@ QC_table <- read.table( path_to_your_QC_file , sep = "\t", header = TRUE)
 HK_table <- read.table( path_to_your_HK_file , sep = "\t", header = TRUE)
 AreaNorm_table <- read.table( path_to_your_AreaNorm_file , sep = "\t", header = TRUE)
 SNRNorm_table <- read.table( path_to_your_SNRNorm_file , sep = "\t", header = TRUE)
+NucleiNorm_table <- read.table( path_to_your_NucleiNorm_file , sep = "\t", header = TRUE)
 
-dim(QC_table)[2]
+annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE)
+
 QC_matrix <- QC_table[ ,10:dim(QC_table)[2]]
 HK_matrix <- HK_table[ ,10:dim(HK_table)[2]]
 AreaNorm_matrix <- AreaNorm_table[ ,10:dim(AreaNorm_table)[2]]
 SNRNorm_matrix <- SNRNorm_table[ ,10:dim( SNRNorm_table )[2]]
+NucleiNorm_matrix <- NucleiNorm_table[ ,10:dim( NucleiNorm_table )[2]]
 
 mode(QC_table[,'ROI_ID']) <- "character"
 mode(HK_table[,'ROI_ID']) <- "character"
 mode(AreaNorm_table[,'ROI_ID']) <- "character"
 mode(SNRNorm_table[,'ROI_ID']) <- "character"
+mode( NucleiNorm_table[,'ROI_ID']) <- "character"
 
 ## Looking for batch effect
 autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID') +
@@ -70,27 +80,39 @@ autoplot( prcomp( AreaNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
 autoplot( prcomp( SNRNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
   ggtitle("SNR Normalized")
 
+autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+  ggtitle("Nuclei Normalized")
 
 # We can observe a batch effect
 # Plot the house keeping genes data
-
 
 ###
 #############
 ## Looking for batch effect
 #############
+mymatrix <- as.matrix(SNRNorm_matrix)
+mymatrix <- as.matrix(QC_matrix)
+mymatrix <- as.matrix( NucleiNorm_matrix)
+pheno <- annot[, c("Morph.cat..Andre.","Histology.number")]
+pheno <- annot[, c("Morph.cat..Andre.","Scan_ID")]
+head(annot)
+colnames(pheno) <- c("subgroups","batch")
+## Fixing colnames 
+rownames(pheno) <- annot[,"Unique_ID"]
+rownames( mymatrix ) <- annot[,"Unique_ID"]
+#
+#
+pheno$batch <- as.factor(pheno$batch)
+batch<-pheno$batch
+modcombat<-model.matrix(~1, data=pheno)
+combat_mydata= ComBat(dat = mymatrix , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
 
 
-str(iris[,1:4])
 
-data(iris)
-head(iris)
-dim(iris)
-extra_column <-c(rep("green",30),rep("yellow",30),rep("black",30),rep("purple",30),rep("brown",30))
-iris2 <- cbind(iris, extra_column)
-head(iris2)
-
-autoplot( prcomp(iris2[,1:4]), data = iris2, colour= 'Species' )
-autoplot( prcomp(iris2[,1:4]), data = iris2, colour= 'Species' , shape= 'extra_column', label =TRUE)
-
+class(mymatrix)
+mydf[1:4,1:10]
+gsub("12e RNA",12,)
+mydf[,1]
+str(pheno)
+  
