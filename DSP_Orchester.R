@@ -34,54 +34,63 @@ if (!require("sva")) {
 ###################################
 #### Data given by the user
 ###################################
-myargs <- commandArgs(trailingOnly = TRUE)
-path_to_your_QC_file <-myargs[1] # Data must be separated by tab (it doesn't matter if the file has the .csv extension or other one)
-path_to_your_QC_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/QC_All_Data_Human_IO_RNA.csv"
-
-path_to_your_HK_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
-path_to_your_AreaNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
-path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
-path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+#myargs <- commandArgs(trailingOnly = TRUE)
+#path_to_your_QC_file <-myargs[1] # Data must be separated by tab (it doesn't matter if the file has the .csv extension or other one)
+#path_to_your_QC_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/QC_All_Data_Human_IO_RNA.csv"
+#path_to_your_HK_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
+#path_to_your_AreaNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
+#path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
+#path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
 
 path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/Annotation_file_Symplified.csv"
+path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+data_label<- "NucleiNorm"
 ###################################
 #### Reading the data
 ###################################
-QC_table <- read.table( path_to_your_QC_file , sep = "\t", header = TRUE)
-HK_table <- read.table( path_to_your_HK_file , sep = "\t", header = TRUE)
-AreaNorm_table <- read.table( path_to_your_AreaNorm_file , sep = "\t", header = TRUE)
-SNRNorm_table <- read.table( path_to_your_SNRNorm_file , sep = "\t", header = TRUE)
-NucleiNorm_table <- read.table( path_to_your_NucleiNorm_file , sep = "\t", header = TRUE)
+#QC_table <- read.table( path_to_your_QC_file , sep = "\t", header = TRUE)
+#HK_table <- read.table( path_to_your_HK_file , sep = "\t", header = TRUE)
+#AreaNorm_table <- read.table( path_to_your_AreaNorm_file , sep = "\t", header = TRUE)
+#SNRNorm_table <- read.table( path_to_your_SNRNorm_file , sep = "\t", header = TRUE)
+# NucleiNorm_table <- read.table( path_to_your_NucleiNorm_file , sep = "\t", header = TRUE)
+
+table <- read.table( path_to_your_table_file , sep = "\t", header = TRUE)
 
 annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE)
 
-QC_matrix <- QC_table[ ,10:dim(QC_table)[2]]
-HK_matrix <- HK_table[ ,10:dim(HK_table)[2]]
-AreaNorm_matrix <- AreaNorm_table[ ,10:dim(AreaNorm_table)[2]]
-SNRNorm_matrix <- SNRNorm_table[ ,10:dim( SNRNorm_table )[2]]
-NucleiNorm_matrix <- NucleiNorm_table[ ,10:dim( NucleiNorm_table )[2]]
+#QC_matrix <- QC_table[ ,10:dim(QC_table)[2]]
+#HK_matrix <- HK_table[ ,10:dim(HK_table)[2]]
+#AreaNorm_matrix <- AreaNorm_table[ ,10:dim(AreaNorm_table)[2]]
+#SNRNorm_matrix <- SNRNorm_table[ ,10:dim( SNRNorm_table )[2]]
+#NucleiNorm_matrix <- NucleiNorm_table[ ,10:dim( NucleiNorm_table )[2]]
+mymatrix <- table[ ,10:dim(table)[2]]
+mymatrix <- as.matrix(mymatrix)
 
-mode(QC_table[,'ROI_ID']) <- "character"
-mode(HK_table[,'ROI_ID']) <- "character"
-mode(AreaNorm_table[,'ROI_ID']) <- "character"
-mode(SNRNorm_table[,'ROI_ID']) <- "character"
-mode( NucleiNorm_table[,'ROI_ID']) <- "character"
+#mode(QC_table[,'ROI_ID']) <- "character"
+#mode(HK_table[,'ROI_ID']) <- "character"
+#mode(AreaNorm_table[,'ROI_ID']) <- "character"
+#mode(SNRNorm_table[,'ROI_ID']) <- "character"
+#mode( NucleiNorm_table[,'ROI_ID']) <- "character"
+mode( table[,'ROI_ID']) <- "character"
 
 ## Looking for batch effect
-autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID') +
-  ggtitle("QC data")
+#autoplot( prcomp( QC_matrix ), data = QC_table, colour= 'Scan_ID') +
+#  ggtitle("QC data")
 
-autoplot( prcomp( HK_matrix ), data = HK_table, colour= 'Scan_ID') +
-  ggtitle("Normalized trough HK")
+#autoplot( prcomp( HK_matrix ), data = HK_table, colour= 'Scan_ID') +
+#  ggtitle("Normalized trough HK")
 
-autoplot( prcomp( AreaNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
-  ggtitle("Area Normalized")
+#autoplot( prcomp( AreaNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+#  ggtitle("Area Normalized")
 
-autoplot( prcomp( SNRNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
-  ggtitle("SNR Normalized")
+#autoplot( prcomp( SNRNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+#  ggtitle("SNR Normalized")
 
-autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
-  ggtitle("Nuclei Normalized")
+#autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
+#  ggtitle("Nuclei Normalized")
+
+#autoplot( prcomp( matrix ), data = HK_table, colour= 'Scan_ID') +
+#  ggtitle("Nuclei Normalized")
 
 # We can observe a batch effect
 # Plot the house keeping genes data
@@ -90,19 +99,20 @@ autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
 #############
 ## Looking for batch effect
 #############
-mymatrix <- as.matrix(SNRNorm_matrix)
-mymatrix <- as.matrix(QC_matrix)
-mymatrix <- as.matrix( NucleiNorm_matrix)
-mymatrix <- as.matrix( HK_matrix)
+#mymatrix <- as.matrix(SNRNorm_matrix)
+#mymatrix <- as.matrix(QC_matrix)
+#mymatrix <- as.matrix( NucleiNorm_matrix)
+#mymatrix <- as.matrix( HK_matrix)
+
 
 pheno <- annot[, c("Morph.cat..Andre.","Histology.number")]
 #pheno <- annot[, c("Morph.cat..Andre.","Scan_ID")]
-head(annot)
 colnames(pheno) <- c("subgroups","batch")
-## Fixing colnames 
-rownames(pheno) <- annot[,"Unique_ID"] ; rownames( mymatrix ) <- annot[,"Unique_ID"]
-#
-#
+## fixing the same rownames 
+rownames(pheno) <- annot[,"Unique_ID"] 
+rownames( mymatrix ) <- annot[,"Unique_ID"]
+
+# Batch effect
 pheno$batch <- as.factor(pheno$batch)
 batch<-pheno$batch
 modcombat<-model.matrix(~1, data=pheno)
@@ -111,15 +121,67 @@ combat_mydata= ComBat(dat = t(mymatrix) , batch=batch, mod=modcombat, par.prior=
 modcombat<-model.matrix(~subgroups, data=pheno)
 combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
+
+modcombat<-model.matrix(~1, data=pheno)
+combat_mydata= ComBat(dat = t(mymatrix) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
+
+### Plotting throug PCAs
+
+annot_4_pca <- cbind( annot[, c("Morph.cat..Andre.","Histology.number","Scan_ID")], pheno )
+annot_4_pca[,"Histology.number"] <- as.factor(annot_4_pca[,"Histology.number"])
+
+rownames( annot_4_pca ) <- rownames(mymatrix)
+
+
+# Pre combat
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Scan_ID') +
+  ggtitle("Pre Combat")
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Histology.number', label = TRUE, label.size = 3) +
+  ggtitle("Pre Combat")
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'subgroups', label = TRUE, label.size = 3) +
+   ggtitle(paste(data_label,"Pre Combat"))
+
+
+
+# After combat
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca, colour= 'Scan_ID', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca, colour= 'Histology.number', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca, colour= 'subgroups', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Histology.number') +
+  ggtitle("Post Combat")
+
+
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca, shape= 'Scan_ID', color='Morph.cat..Andre.') +
+  ggtitle("Post Combat")
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca,  color='Morph.cat..Andre.') +
+  ggtitle("Post Combat")
+
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca,  shape='Scan_ID') +
+  ggtitle("Post Combat")
+dev.off()
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca,  color='Scan_ID') +
+  ggtitle("Post Combat")
+
+colnames(annot_4_pca)
+
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_pca, colour= 'Scan_ID' )+
+  ggtitle("Post Combat")
+
+
 autoplot( prcomp( t(combat_mydata) ), data = HK_table, colour= 'Scan_ID') +
-  ggtitle("SNR Normalized")
+  ggtitle("Post Combat")
 autoplot( prcomp( t(combat_mydata) ), data = pheno, colour= 'subgroups' , label = TRUE, label.size = 3) +
-  ggtitle("SNR Normalized")
+  ggtitle("Post Combat")
 
 autoplot(prcomp( NucleiNorm_matrix ), data = pheno, colour= 'subgroups') +
-  ggtitle("Nuclei Normalized")
+  ggtitle("Pre combat")
 autoplot( prcomp( NucleiNorm_matrix ), data = HK_table, colour= 'Scan_ID') +
-  ggtitle("Nuclei Normalized")
+  ggtitle("Pre combat")
 
 str(combat_mydata)
 head(combat_mydata)
@@ -133,4 +195,3 @@ mydf[1:4,1:10]
 gsub("12e RNA",12,)
 mydf[,1]
 str(pheno)
-  
