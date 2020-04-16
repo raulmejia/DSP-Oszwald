@@ -111,7 +111,7 @@ boxplot( t(mymatrix) , col=annot_4_pca$Biopsy.year, main="Biopsy year")
 boxplot( t(mymatrix), col=annot_4_pca$Morph.cat..Andre. , main="Morph Cat André"  )
 dev.off()
 
-
+table(annot_4_pca$Morph.cat..Andre.)
 ##################
 ## log 2 transformation
 ##################
@@ -141,10 +141,15 @@ dev.off()
 ###################################
 
 
+matrix_list <- split(mymatrix,annot_4_pca$Scan_ID )
 
-
-
-
+matrix_list
+boxplot(matrix_list[[1]])
+class(matrix_list[[1]])
+length(matrix_list[[1]])
+matrix_list[[1]] <- matrix(matrix_list[[1]] , nrow=72)
+?as.matrix
+dim(matrix_list[[1]])
 
 # Normalization Between slides ~ Micoarrays (It is pertinent?) 
 data <- t(mymatrix)
