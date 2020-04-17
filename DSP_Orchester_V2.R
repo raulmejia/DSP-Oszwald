@@ -77,7 +77,10 @@ data_label<- "NucleiNorm"
 
 path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/prezoom/Nuclei"
 
-intra_batch_normalization <- 
+intra_batch_normalization <- # the name of your column to correct
+  # please don't use spaces in the names of your columns
+  # The files should have the folowing columns
+  # annotation file Morphological_Categories
 ###################################
 #### Creating your files
 ###################################
@@ -102,6 +105,36 @@ annot_4_pca <- cbind( annot[, c("Morph.cat..Andre.","Histology.number","Scan_ID"
 annot_4_pca[,"Histology.number"] <- as.factor(annot_4_pca[,"Histology.number"])
 annot_4_pca[,"Biopsy.year"] <- as.factor(annot_4_pca[,"Biopsy.year"])
 rownames( annot_4_pca ) <- rownames(mymatrix)
+
+##   ggplot2
+
+# meltme 4  ggplot2
+annot_4_pca
+ScanIDEdited <- as.character(table$Scan_ID) 
+ScanIDEdited <- gsub("e RNA","_",ScanIDEdited)
+ROI_ScanID <- paste0(ScanIDEdited,as.character(table$ROI_ID))
+table_with_uniqID <- cbind(ROI_ScanID,table)
+colpositions_withgenes <- grep("OAZ1",colnames(table_with_uniqID)):dim(table_with_uniqID)[2]
+table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars =  colpositions_withgenes)
+table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="Scan_ID",measure.vars =  colpositions_withgenes)
+colnames(table_melted_MtxAndScanID)[2] <- "gene"
+ScanID4melted <- as.character( rep(table$Scan_ID, length(colpositions_withgenes)) )
+ROI4melted <- as.character( rep(table$ROI_ID, length(colpositions_withgenes)) )
+#PathoDescrip4melted <- as.character( rep(table$, length(colpositions_withgenes)) )
+table_melted_MtxAndScanID <- cbind(table_melted_MtxAndScanID , ScanID4melted)
+
+
+head(table)
+head(table_melted_MtxAndScanID, 100)
+q <- ggplot(table_melted_MtxAndScanID, aes(ROI_ScanID, value))
+q + geom_boxplot()
+annot
+
+#########
+###
+########
+
+
 
 dir.create(paste0(path_Results_directory,"/Exploratory"), recursive = TRUE)
 pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Exploring_Data_as_given.pdf"),
@@ -182,33 +215,38 @@ plotDensities(data, col=rep( uniqbatch_colors  , times = as.vector(table(batches
 boxplot(data, col=colbatchcolors, main="Scan ID")
 
 
-head(table)
-toy<-table[1:20,c("Scan_ID","OAZ1","ROI_ID")]
-melt(toy, value.name = Scan_ID)
-?melt
-
-x = data.frame(
-  id   = c("1_1","1_2", "2_1", "2_2"),
-  blue = c(5, 55, 555, -5),
-  red  = c(0, 1, 0, 1),
-  uno = 1:4,
-  dos = 2:5
-)
-
-melt(data = x, id.vars = "id", measure.vars = c("blue", "red","uno"))
-melt(data = x, id.vars = "id", measure.vars = c("blue", "red"))
-
 ScanIDEdited <- as.character(table$Scan_ID) 
 ScanIDEdited <- gsub("e RNA","_",ScanIDEdited)
 ROI_ScanID <- paste0(ScanIDEdited,as.character(table$ROI_ID))
 table_with_uniqID <- cbind(ROI_ScanID,table)
-
-table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars )
 colpositions_withgenes <- grep("OAZ1",colnames(table_with_uniqID)):dim(table_with_uniqID)[2]
+table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars =  colpositions_withgenes)
+table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="Scan_ID",measure.vars =  colpositions_withgenes)
+colnames(table_melted_MtxAndScanID)[2] <- "gene"
+ScanID4melted <- as.character( rep(table$Scan_ID, length(colpositions_withgenes)) )
+ROI4melted <- as.character( rep(table$ROI_ID, length(colpositions_withgenes)) )
+#PathoDescrip4melted <- as.character( rep(table$, length(colpositions_withgenes)) )
+table_melted_MtxAndScanID <- cbind(table_melted_MtxAndScanID , ScanID4melted)
+
+
+head(table)
+head(table_melted_MtxAndScanID, 100)
+q <- ggplot(table_melted_MtxAndScanID, aes(ROI_ScanID, value))
+q + geom_boxplot()
+
+head(mpg, n= 30)
+p <- ggplot(mpg, aes(class, hwy))
+p + geom_boxplot()
+
+
+
+
+
 head(table)
 
-x
-
+head(mpg, n= 20)
+p <- ggplot(mpg, aes(class, hwy))
+p + geom_boxplot()
 table[1:5,1:5]
 1:5; 
 letters[1:5]
