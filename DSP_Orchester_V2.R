@@ -68,7 +68,7 @@ if (!require("reshape2")) {
 #path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
 #path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
 
-path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/Annotation_file_Symplified_Corrected.csv"
+path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/Annotation_file_Symplified_Corrected_colnames_NOspaces.csv"
 #path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 #data_label<- "HK"
 
@@ -77,10 +77,13 @@ data_label<- "NucleiNorm"
 
 path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/prezoom/Nuclei"
 
-intra_batch_normalization <- # the name of your column to correct
-  # please don't use spaces in the names of your columns
+colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
+  # please don't use spaces or parenthesis/brackets in the names of your columns
   # The files should have the folowing columns
   # annotation file Morphological_Categories
+  
+Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
+  
 ###################################
 #### Creating your files
 ###################################
@@ -91,98 +94,106 @@ dir.create(path_Results_directory , recursive = TRUE)
 ###################################
 table <- read.table( path_to_your_table_file , sep = "\t", header = TRUE)
 annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE)
-mymatrix <- table[ ,10:dim(table)[2]]
-mymatrix <- as.matrix(mymatrix)
+colpositions_withgenes <- grep("OAZ1",colnames(table)):dim(table)[2]
+mymatrix <- table[ ,colpositions_withgenes]
+Rawmymatrix <- as.matrix(mymatrix)
 mode( table[,'ROI_ID']) <- "character" # ? 
-rownames( mymatrix ) <- annot[,"Unique_ID"]
+rownames( Rawmymatrix ) <- annot[,"Unique_ID"]
 
 #####################
 # Annotation object for plotting
 ####################
-
-# annot_4_pca <- cbind( annot[, c("Morph.cat..Andre.","Histology.number","Scan_ID","Biopsy.year")], pheno )
-annot_4_pca <- cbind( annot[, c("Morph.cat..Andre.","Histology.number","Scan_ID","Biopsy.year")])
-annot_4_pca[,"Histology.number"] <- as.factor(annot_4_pca[,"Histology.number"])
-annot_4_pca[,"Biopsy.year"] <- as.factor(annot_4_pca[,"Biopsy.year"])
-rownames( annot_4_pca ) <- rownames(mymatrix)
+annot_4_pca <- cbind( annot[, c("Morph_cat_Andre","Histology_number","Scan_ID","Biopsy_year","Morphological_Categories")])
+annot_4_pca[,"Histology_number"] <- as.factor(annot_4_pca[,"Histology_number"])
+annot_4_pca[,"Biopsy_year"] <- as.factor(annot_4_pca[,"Biopsy_year"])
+rownames( annot_4_pca ) <- rownames( Rawmymatrix )
 
 ##   ggplot2
-
 # meltme 4  ggplot2
-annot_4_pca
-ScanIDEdited <- as.character(table$Scan_ID) 
-ScanIDEdited <- gsub("e RNA","_",ScanIDEdited)
-ROI_ScanID <- paste0(ScanIDEdited,as.character(table$ROI_ID))
-table_with_uniqID <- cbind(ROI_ScanID,table)
-colpositions_withgenes <- grep("OAZ1",colnames(table_with_uniqID)):dim(table_with_uniqID)[2]
-table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars =  colpositions_withgenes)
-table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="Scan_ID",measure.vars =  colpositions_withgenes)
-colnames(table_melted_MtxAndScanID)[2] <- "gene"
-ScanID4melted <- as.character( rep(table$Scan_ID, length(colpositions_withgenes)) )
-ROI4melted <- as.character( rep(table$ROI_ID, length(colpositions_withgenes)) )
-#PathoDescrip4melted <- as.character( rep(table$, length(colpositions_withgenes)) )
-table_melted_MtxAndScanID <- cbind(table_melted_MtxAndScanID , ScanID4melted)
+source( paste0( Code_path,"DSP_Orchester_V2.R"))
 
+matrix_N_annotdf_2_melteddf <- function( onematrix, oneannotdf){
+  table_with_uniqID <- cbind( as.character(oneannotdf$Unique_ID) , as.data.frame(onematrix) )
 
-head(table)
-head(table_melted_MtxAndScanID, 100)
-q <- ggplot(table_melted_MtxAndScanID, aes(ROI_ScanID, value))
-q + geom_boxplot()
-annot
+  colnames(table_with_uniqID) <- c("Unique_ID", colnames(table[ ,colpositions_withgenes]))
+  table_melted_MtxAndUniqueID <-melt(data=table_with_uniqID, id.vars="Unique_ID",measure.vars = colnames(table_with_uniqID)[-1]   )
+
+  colnames(table_melted_MtxAndUniqueID)[2] <- "gene"
+  
+  Scan_ID <-                  as.character( rep( oneannotdf$Scan_ID, length(colpositions_withgenes)) )
+  Biopsy_year <-              as.character( rep( oneannotdf$Biopsy_year , length(colpositions_withgenes)) )
+  Histology_number <-         as.character( rep( oneannotdf$Histology_number , length(colpositions_withgenes)) )
+  Morphological_Categories <- as.character( rep( oneannotdf$Morphological_Categories , length(colpositions_withgenes)) )
+  ROI_ID <-                   as.character( rep( oneannotdf$ROI_ID, length(colpositions_withgenes)) )
+  
+  result_table_melted_MtxAndScanID <- cbind(table_melted_MtxAndUniqueID , Scan_ID
+                                     ,Biopsy_year,Histology_number,ROI_ID,Morphological_Categories )
+  
+return(result_table_melted_MtxAndScanID)
+}
+# Send the previous function to a separated Script
+meltedrawdata <- matrix_N_annotdf_2_melteddf( Rawmymatrix , annot )
+head(meltedrawdata)
+
+p <- ggplot( meltedrawdata, aes(x=Unique_ID, y=value, fill=Scan_ID))
+p + geom_boxplot()
 
 #########
 ###
 ########
-
-
-
 dir.create(paste0(path_Results_directory,"/Exploratory"), recursive = TRUE)
 pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Exploring_Data_as_given.pdf"),
      width = 10, height = 7)
 autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Scan_ID') +
   ggtitle(paste(data_label,"Exploring Data as given"))
-autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Histology.number', label = TRUE, label.size = 3) +
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Exploring Data as given"))
-autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Biopsy.year', label = TRUE, label.size = 3) +
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Biopsy_year', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Exploring Data as given"))
-autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Morph.cat..Andre.', label = TRUE, label.size = 3) +
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Exploring Data as given"))
-boxplot(t(mymatrix), col=annot_4_pca$Scan_ID, main="Scan ID")
-boxplot(t(mymatrix) , col=annot_4_pca$Histology.number, main="Histology number")
-boxplot( t(mymatrix) , col=annot_4_pca$Biopsy.year, main="Biopsy year")
-boxplot( t(mymatrix), col=annot_4_pca$Morph.cat..Andre. , main="Morph Cat André"  )
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Scan_ID))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Histology_number))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Biopsy_year))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill= Morphological_Categories))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
 dev.off()
-dim(mymatrix)
-table(annot_4_pca$Morph.cat..Andre.)
+
+table(annot$Morphological_Categories)
 ##################
 ## log 2 transformation
 ##################
-mymatrix <- log2(mymatrix)+1
-
+mymatrix <- log2(Rawmymatrix)+1
+meltedrawdata <- matrix_N_annotdf_2_melteddf(Lmymatrix,annot )
 # Exploring Raw Data with log2 trandformation
 dir.create(paste0(path_Results_directory,"/Exploratory"), recursive = TRUE)
 pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"Raw_Data_log2_tranformed.pdf"),
      width = 10, height = 7)
 autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Scan_ID') +
   ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Histology.number', label = TRUE, label.size = 3) +
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Biopsy.year', label = TRUE, label.size = 3) +
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Biopsy_year', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Morph.cat..Andre.', label = TRUE, label.size = 3) +
+autoplot( prcomp( mymatrix ), data = annot_4_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-boxplot(t(mymatrix), col=annot_4_pca$Scan_ID, main="Scan ID")
-boxplot(t(mymatrix) , col=annot_4_pca$Histology.number, main="Histology number")
-boxplot( t(mymatrix) , col=annot_4_pca$Biopsy.year, main="Biopsy year")
-boxplot( t(mymatrix), col=annot_4_pca$Morph.cat..Andre. , main="Morph Cat André"  )
-dev.off()
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Scan_ID))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Histology_number))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Biopsy_year))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
+q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill= Morphological_Categories))
+q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
 
+dev.off()
 
 ###################################
 #### Normalization between batch
 ###################################
-
-
 quantile_normalisation <- function(df){
   df_rank <- apply(df,2,rank,ties.method="min")
   df_sorted <- data.frame(apply(df, 2, sort))
@@ -205,14 +216,17 @@ df <- data.frame(one=c(5,2,3,4),
 rownames(df) <- toupper(letters[1:4])
 #uniqbatch_colors <- brewer.pal(n = length(unique(batches)), name = "Dark2")
 #uniqbatch_colors <- brewer.pal(n = length(unique(batches)), name = "Set3")
-uniqbatch_colors <- brewer.pal(n = length(unique(batches)), name = "Set1")
+annot[ , colname_4_intra_batch_normalization]
+uniqbatch_colors <- brewer.pal(n = length(unique( annot[ , colname_4_intra_batch_normalization] )), name = "Set1")
 sapply( uniqbatch_colors , color.id)
 humanreadablecolors<- as.character(sapply( uniqbatch_colors , color.id))
-colbatchcolors <- rep( uniqbatch_colors  , times = as.vector(table(batches)))
+colbatchcolors <- rep( uniqbatch_colors  , times = as.vector(table( annot[ , colname_4_intra_batch_normalization])))
 
-plotDensities(data, col=colbatchcolors, main="Scan ID", legend= FALSE)
-plotDensities(data, col=rep( uniqbatch_colors  , times = as.vector(table(batches))), main="Scan ID")
-boxplot(data, col=colbatchcolors, main="Scan ID")
+plotDensities(Rawmymatrix, col=colbatchcolors, main="Scan ID", legend= FALSE)
+plotDensities(  mymatrix, col=colbatchcolors, main="Scan ID", legend= FALSE)
+mymatrix[ 1:6 , 1:6 ]
+length( colbatchcolors)
+dim( mymatrix)
 
 
 ScanIDEdited <- as.character(table$Scan_ID) 
@@ -343,45 +357,4 @@ boxplot( combat_mydata , col=annot_4_pca$Biopsy.year, main="Biopsy year")
 boxplot( combat_mydata, col=annot_4_pca$Morph.cat..Andre. , main="Morph Cat André"  )
 dev.off()
 
-
-
-
-library(limma)
-library(sma)
-help.start()
-data(MouseArray)
-# just bkg
-corr
-MA.n <- MA.RG(mouse.data)                               # no
-normalization
-
-MA.q <- normalizeBetweenArrays(MA.p, method = "q")      # quantile
-norm
-
-G.q <- normalizeBetweenArraysRG.MA(MA.n)$G,method="q") # only green
-sc's
-                                                        # takes a
-matrix
-
-tmp<-cbindRG.MA(MA.n)$R,RG.MA(MA.n)$G)[,c(1,3,8,9,12)] # select sc's
-tmp.q <- normalizeBetweenArrays(tmp, method = "q")      # takes a
-matrix
-
-MA.p <- normalizeWithinArrays(MA.n, mouse.setup)        # default
-p-loess
-MA.pq <- normalizeBetweenArrays(MA.p, method = "q")     # pq norm
-
-MA.MpAq <- normalizeBetweenArrays(MA.p, method = "Aq")  # MpAq norm
-# Yang &
-Thorne 03
-
-
-plotDensities(MA.n)                                     # default
-
-plotDensities(MA.n,arrays=c(1:6),                       # same as
-              default
-              groups=c(rep(1,6),rep(2,6)),col=c("red","green"))
-
-plotDensities(MA.n,arrays=NULL,groups=NULL,             # diff cols
-              col=c("blue","purple"))
 
