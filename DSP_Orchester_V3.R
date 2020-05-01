@@ -63,8 +63,14 @@ if (!require("cowplot")) {
   install.packages("cowplot", ask =FALSE)
   library("cowplot")
 }
-
-
+if (!require("preprocessCore")) {
+  BiocManager::install("preprocessCore", ask =FALSE)
+  library("preprocessCore")
+}
+if (!require("affy")) {
+  BiocManager::install("affy", ask =FALSE)
+  library("affy")
+}
 
 ###################################
 #### Data given by the user
@@ -78,21 +84,25 @@ if (!require("cowplot")) {
 #path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
 
 path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/Annotation_file_Symplified_Corrected_colnames_NOspaces.csv"
+#path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/DSP_ROI_annotations_outcome_v2_RM_cols.csv"
 #path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 #data_label<- "HK"
 
 path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
-data_label<- "NucleiNorm"
+
+Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
+# Path where are the rest of your scripts
 
 path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/prezoom/Nuclei"
+
+data_label<- "NucleiNorm"
 
 colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
   # please don't use spaces or parenthesis/brackets in the names of your columns
   # The files should have the folowing columns
   # annotation file Morphological_Categories
   
-Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
-  # Path where are the rest of your scripts
+
 
 ###################################
 #### Creating your result folders if they doesn't exist yet
@@ -120,10 +130,12 @@ annot_4_plotting_pca[,"Histology_number"] <- as.factor(annot_4_plotting_pca[,"Hi
 annot_4_plotting_pca[,"Biopsy_year"] <- as.factor(annot_4_plotting_pca[,"Biopsy_year"])
 rownames( annot_4_plotting_pca ) <- rownames( Rawmymatrix )
 
+annot_4_plotting_pca$Morphological_Categories <- as.factor(annot_4_plotting_pca$Morphological_Categories)
+
 # loading the function to melt (reshape) the data to preparation for ggplot2 functions
-source( paste0( Code_path,"matrix_N_annotdf_2_melteddf.R"))
+source( paste0( Code_path,"matrix_N_annotdf_2_melteddf.R") )
 meltedrawdata <- matrix_N_annotdf_2_melteddf( Rawmymatrix , annot )
-head(meltedrawdata)
+head( meltedrawdata )
 
 #########
 ### Generating plots to describe the Raw data
@@ -243,82 +255,141 @@ plot4 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = ScanID4melted)) 
 plot_grid(plot3, plot4, nrow = 1)
 plot_grid(plot3, plot4, plot4, plot3, nrow = 2)
 
-list_splited_table <- split(table, table$Scan_ID)
-list_splited_table[[1]]
-dim(list_splited_table[[1]])
-table[1:49,1:4]
+################################
+###### quantile normalization 
+################################
+matrix4intrabatchnorm <- cbind(as.character(table$Scan_ID),as.data.frame(mymatrix))
+colnames(matrix4intrabatchnorm) <- "batch"
+matrix4intrabatchnorm[,"batch"] <- as.factor( matrix4intrabatchnorm[,"batch"] )
+matrix4intrabatchnorm[1:4,1:4]
 
+list_splited_table <- split(matrix4intrabatchnorm, matrix4intrabatchnorm$batch)
+bye1stcol <- function(df){
+  print(dim(df))
+  df<- df[,-1]
+  print(dim(df))
+  return(df)
+} 
+list_splited_table_no1stcol <- lapply(list_splited_table, bye1stcol)
+putcolnmaes <- function(df){
+  colnames(df) <- colnames(mymatrix)
+  return(df)
+}
+list_splited_table_propercolnames <- lapply(list_splited_table_no1stcol, putcolnmaes)
+list_splited_table_propercolnames[[1]][1:4,1:4]
 
-str(table_splited)
+list_splited_table_t <- lapply(list_splited_table_propercolnames, t )
+makeme_num_mat <-function(df){
+  df <- as.matrix(df)
+  mode(df) <- "numeric"
+  return(df)
+}
+list_splited_nummat <- lapply(list_splited_table_t, makeme_num_mat)
+list_splitd_qnorm <- lapply(list_splited_nummat, quantile_normalisation)
+qnormmat <- do.call(cbind, list_splitd_qnorm)
+dim(qnormmat)
+qnormmat_t <- t(qnormmat)
+dim(qnormmat_t)
+qnormmat_t[12:15, 1:5]
+mymatrix[12:15,1:5]
 
-spplited_list <- split(as.data.frame(mymatrix),annot_4_plotting_pca$Scan_ID )
-str(spplited_list)
+### Achtung!! all normalization
+#qnormmat_t<-quantile_normalisation(t(mymatrix))
+qnormmat_t[1:4,1:4]
+t(mymatrix)[1:4,1:4]
+plotDensities(t(qnormmat_t), legend = FALSE)
+plotDensities(t(qnormmat_t))
 
-head(annot_4_plotting_pca)
+#############
+#### visualize your normalized data
+##############
+qnormmat_t[1:4,1:4]
 head(table)
-str(table)
 
-numeric_list <- split(mymatrix,annot_4_plotting_pca$Scan_ID )
-reshape_as_matrix <- function(x) matrix(x, nrow=dim(mymatrix)[1])
-reshape_as_matrix(matrix_list[[1]])
-matrix_list <- lapply( numeric_list, reshape_as_matrix )
-mymatrix[1:4,1:4]
-matrix_list[[1]][1:5,1:5]
-head(matrix_list[[1]])
+colpositions_withoutgenes <- 1:(grep("OAZ1",colnames(table))-1)
+table_qnorm <- cbind(table[,colpositions_withoutgenes], qnormmat_t)
 
-head(mymatrix)
-dim(mymatrix)[1]
+ScanIDEdited_qnorm <- as.character(table_qnorm$Scan_ID) ; ScanIDEdited_qnorm <- gsub("e RNA","_",ScanIDEdited_qnorm)
+ROI_ScanID_qnorm <- paste0(ScanIDEdited_qnorm,as.character(table_qnorm$ROI_ID))
+table_with_uniqID_qnorm <- cbind(ROI_ScanID_qnorm,table_qnorm)
+colpositions_withgenes_qnorm <- grep("OAZ1",colnames(table_with_uniqID_qnorm)):dim(table_with_uniqID_qnorm)[2]
+table_melted_MtxAndScanID_qnorm <-melt(data=table_with_uniqID_qnorm, id.vars="ROI_ScanID_qnorm",measure.vars =  colpositions_withgenes_qnorm)
+#table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="Scan_ID",measure.vars =  colpositions_withgenes)
+colnames(table_melted_MtxAndScanID_qnorm)[2] <- "gene"
+ScanID4melted_qnorm <- as.character( rep(table_qnorm$Scan_ID, length(colpositions_withgenes)) )
+ROI4melted_qnorm <- as.character( rep(table_qnorm$ROI_ID, length(colpositions_withgenes)) )
+#PathoDescrip4melted <- as.character( rep(table$, length(colpositions_withgenes)) )
+table_melted_MtxAndScanID_qnorm <- cbind(table_melted_MtxAndScanID_qnorm , ScanID4melted_qnorm)
 
-matrix_list
-boxplot(matrix_list[[1]])
-class(matrix_list[[1]])
-length(matrix_list[[1]])
-matrix_list[[1]] <- matrix(matrix_list[[1]] , nrow=72)
-?as.matrix
-dim(matrix_list[[1]])
+head(table_qnorm)
+head(table_melted_MtxAndScanID_qnorm, 100)
 
-# Normalization Between slides ~ Micoarrays (It is pertinent?) 
-data <- t(mymatrix)
-plotDensities(t(data))
-batches <- annot_4_plotting_pca$Scan_ID
+plot3 <- ggplot(table_melted_MtxAndScanID_qnorm, aes(x=value, fill = ScanID4melted_qnorm, y = ROI_ScanID_qnorm)) + 
+  geom_density_ridges() 
+  #scale_x_continuous(trans = "log10") +
+  #ggtitle("Density Scaled to 1")
+plot3
 
+plot4 <- ggplot(table_melted_MtxAndScanID_qnorm, aes(x=value, color = ScanID4melted_qnorm)) + 
+  geom_density() 
+  #scale_x_continuous(trans = "log2")+
+  #ggtitle("Height Scaled to X")
 
-
-plotDensities(t(data), col=rainbow(length(annot_4_plotting_pca$Scan_ID)),legend=FALSE)
-#boxplot(log2(data)+1)
-boxplot(data, col=annot_4_plotting_pca$Scan_ID, main="Scan ID")
-boxplot(data, col=annot_4_plotting_pca$Histology.number, main="Histology number")
-boxplot(data, col=annot_4_plotting_pca$Biopsy.year, main="Biopsy year")
-boxplot(data, col=annot_4_plotting_pca$Morph.cat..Andre. , main="Morph Cat André"  )
-geom_boxplot(aes=data)
-data(mpg)
-p <- ggplot(mpg, aes(class, hwy))
-p + geom_boxplot()
+plot_grid(plot3, plot4, nrow = 1)
 
 
-plotDensities(data[1:84,1:71])
+##### normalize all togheter qnorm
 
-rownames(data)
-dim(data)
-str(data)
-boxplot(log2(data)+1)
-plotDensities( t(log2(data)+1))
-plotDensities(matrix(rnorm(100,0,1), ncol=10))
-?plotDensities
-head(data)
-str(data)
-rownames(data) <- data[,1]
-data_mat <- data.matrix(data[,-1]) 
-head(data_mat)
-data_norm <- normalize.quantiles(data_mat, copy = TRUE)
 
 
 #############
 ## Looking for batch effect
 #############
 ## Pheno object for combat
-pheno <- annot[, c("Morph.cat..Andre.","Histology.number")]
-pheno <- annot[, c("Morph.cat..Andre.","Scan_ID")]
+#pheno <- annot[, c("Morphological_Categories","Histology_number")]
+pheno <- annot[, c("Morph_cat_Andre","Scan_ID")]
+pheno <- annot[, c("Morphological_Categories","Scan_ID")]
+colnames(pheno) <- c("subgroups","batch")
+rownames(pheno) <- annot[,"Unique_ID"] 
+
+# Batch effect with combat
+pheno$batch <- as.factor(pheno$batch)
+batch<-pheno$batch
+modcombat<-model.matrix(~1, data=pheno)
+combat_mydata= ComBat(dat = t(qnormmat_t) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+t(qnormmat_t)
+#modcombat<-model.matrix(~subgroups, data=pheno)
+#combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
+
+# After combat
+pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Postcombat.pdf"),
+     width = 10, height = 7)
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Scan_ID', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Biopsy_year', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
+  ggtitle(paste(data_label,"Post Combat"))
+boxplot(combat_mydata, col=annot_4_plotting_pca$Scan_ID, main="Scan ID")
+boxplot(combat_mydata , col=annot_4_plotting_pca$Histology_number, main="Histology number")
+boxplot( combat_mydata , col=annot_4_plotting_pca$Biopsy_year, main="Biopsy year")
+boxplot( combat_mydata, col=annot_4_plotting_pca$Morphological_Categories , main="Morph Cat André"  )
+dev.off()
+
+pheatmap(combat_mydata, annotation= annot)
+pheatmap(combat_mydata, annotation= annot_4_plotting_pca)
+
+?pheatmap
+#############
+## Looking for batch effect
+#############
+## Pheno object for combat
+#pheno <- annot[, c("Morphological_Categories","Histology_number")]
+pheno <- annot[, c("Morph_cat_Andre","Scan_ID")]
+pheno <- annot[, c("Morphological_Categories","Scan_ID")]
 colnames(pheno) <- c("subgroups","batch")
 rownames(pheno) <- annot[,"Unique_ID"] 
 
@@ -335,13 +406,13 @@ combat_mydata= ComBat(dat = t(mymatrix) , batch=batch, mod=modcombat, par.prior=
 # After combat
 pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Postcombat.pdf"),
      width = 10, height = 7)
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Scan_ID', label = TRUE, label.size = 3) +
+autoplot( prcomp( t(combat_mydata)  ), data = annot_4_plotting_pca, colour= 'Scan_ID', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Histology.number', label = TRUE, label.size = 3) +
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Post Combat"))
 autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Biopsy.year', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Morph.cat..Andre.', label = TRUE, label.size = 3) +
+autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
   ggtitle(paste(data_label,"Post Combat"))
 boxplot(combat_mydata, col=annot_4_plotting_pca$Scan_ID, main="Scan ID")
 boxplot(combat_mydata , col=annot_4_plotting_pca$Histology.number, main="Histology number")
