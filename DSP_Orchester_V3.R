@@ -4,7 +4,7 @@
 #### The aim is to coordinate DSP data analysis 
 ###################################
 ###################################
-#### loading and/or installing required libraries
+#### 0) loading and/or installing required libraries
 ###################################
 if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
@@ -34,7 +34,6 @@ if (!require("limma")) {
   BiocManager::install("limma", ask =FALSE)
   library("limma")
 }
-# ???
 if (!require("smooth")) {
   install.packages("smooth", ask =FALSE)
   library("smooth")
@@ -110,26 +109,27 @@ colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to co
 dir.create(path_Results_directory , recursive = TRUE)
 
 ###################################
-#### Reading and preparing the Raw expression matrix
+#### Reading the annotation table and the table that cointains the expression data
 ###################################
 table <- read.table( path_to_your_table_file , sep = "\t", header = TRUE)
 annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE)
 
+###################################
+#### Extracting the Raw expression matrix
+###################################
 colpositions_withgenes <- grep("OAZ1",colnames(table)):dim(table)[2]
-
 Rawmymatrix <- table[ ,colpositions_withgenes]
 Rawmymatrix <- as.matrix(Rawmymatrix)
 mode( table[,'ROI_ID']) <- "character" 
 rownames( Rawmymatrix ) <- annot[,"Unique_ID"]
 
 #####################
-# Annotation object for plotting
+# Annotation object for plotting pcas
 ####################
 annot_4_plotting_pca <- cbind( annot[, c("Morph_cat_Andre","Histology_number","Scan_ID","Biopsy_year","Morphological_Categories")])
 annot_4_plotting_pca[,"Histology_number"] <- as.factor(annot_4_plotting_pca[,"Histology_number"])
 annot_4_plotting_pca[,"Biopsy_year"] <- as.factor(annot_4_plotting_pca[,"Biopsy_year"])
 rownames( annot_4_plotting_pca ) <- rownames( Rawmymatrix )
-
 annot_4_plotting_pca$Morphological_Categories <- as.factor(annot_4_plotting_pca$Morphological_Categories)
 
 # loading the function to melt (reshape) the data to preparation for ggplot2 functions
@@ -140,6 +140,8 @@ head( meltedrawdata )
 #########
 ### Generating plots to describe the Raw data
 ########
+
+
 dir.create(paste0(path_Results_directory,"/Exploratory"), recursive = TRUE)
 pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Exploring_Data_as_given.pdf"),
      width = 10, height = 7)
