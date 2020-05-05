@@ -92,7 +92,7 @@ path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CS
 Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
 # Path where are the rest of your scripts
 
-path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/prezoom/Nuclei"
+path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
 
 data_label<- "NucleiNorm"
 
@@ -101,8 +101,6 @@ colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to co
   # The files should have the folowing columns
   # annotation file Morphological_Categories
   
-
-
 ###################################
 #### Creating your result folders if they doesn't exist yet
 ###################################
@@ -111,8 +109,8 @@ dir.create(path_Results_directory , recursive = TRUE)
 ###################################
 #### Reading the annotation table and the table that cointains the expression data
 ###################################
-table <- read.table( path_to_your_table_file , sep = "\t", header = TRUE)
-annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE)
+table <- read.table( path_to_your_table_file , sep = "\t", header = TRUE )
+annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
 
 ###################################
 #### Extracting the Raw expression matrix
@@ -137,31 +135,38 @@ source( paste0( Code_path,"matrix_N_annotdf_2_melteddf.R") )
 meltedrawdata <- matrix_N_annotdf_2_melteddf( Rawmymatrix , annot )
 head( meltedrawdata )
 
+########################################
+########
+########    0. Exploratory
+########
+########################################
 #########
 ### Generating plots to describe the Raw data
 ########
-
-
-dir.create(paste0(path_Results_directory,"/Exploratory"), recursive = TRUE)
-pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Exploring_Data_as_given.pdf"),
-     width = 10, height = 7)
-autoplot( prcomp( Rawmymatrix ), data = annot_4_plotting_pca, colour= 'Scan_ID') +
-  ggtitle(paste(data_label,"Exploring Data as given"))
-autoplot( prcomp( Rawmymatrix ), data = annot_4_plotting_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Exploring Data as given"))
-autoplot( prcomp( Rawmymatrix ), data = annot_4_plotting_pca, colour= 'Biopsy_year', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Exploring Data as given"))
-autoplot( prcomp( Rawmymatrix ), data = annot_4_plotting_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Exploring Data as given"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Scan_ID))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Histology_number))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Biopsy_year))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill= Morphological_Categories))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Data as given"))
-dev.off()
+PCA_boxplots <- function(result_dir, exp_matrix, annotdf, melteddf, label4title  ){
+  dir.create( result_dir, recursive = TRUE )
+  pdf( file=paste0(result_dir,"/" , label4title ,".pdf"),
+       width = 10, height = 7)
+  print(autoplot( prcomp( exp_matrix ), data = annotdf, colour= 'Scan_ID') +
+    ggtitle(paste(label4title )))
+  print(autoplot( prcomp( exp_matrix ), data = annotdf , colour= 'Histology_number', label = TRUE, label.size = 3) +
+      ggtitle(paste( label4title  )))
+  print(autoplot( prcomp( exp_matrix ), data = annotdf , colour= 'Biopsy_year', label = TRUE, label.size = 3) +
+    ggtitle(paste( label4title  ) ) )
+  print(  autoplot( prcomp( exp_matrix ), data = annotdf , colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
+    ggtitle(paste( label4title )) )
+   q <- ggplot( melteddf , aes(Unique_ID, value, fill=Scan_ID))
+  print( q + geom_boxplot( )+ ggtitle(paste( label4title )) )
+   q <- ggplot( melteddf , aes(Unique_ID, value, fill=Histology_number))
+  print( q + geom_boxplot( )+ ggtitle(paste( label4title )) )
+  q <- ggplot( melteddf , aes(Unique_ID, value, fill=Biopsy_year))
+  print( q + geom_boxplot( )+ ggtitle(paste( label4title )) )
+  q <- ggplot( melteddf , aes(Unique_ID, value, fill= Morphological_Categories))
+  print( q + geom_boxplot( )+ ggtitle(paste( label4title )) )
+  dev.off()  
+}
+PCA_boxplots(  paste0( path_Results_directory,"/Exploratory" )  ,
+               Rawmymatrix,  annot_4_plotting_pca , meltedrawdata , paste( data_label, "Data as given" ))
 
 table(annot$Morphological_Categories)
 
@@ -169,31 +174,18 @@ table(annot$Morphological_Categories)
 ## log 2 transformation
 ##################
 mymatrix <- log2(Rawmymatrix)+1
-meltedrawdata <- matrix_N_annotdf_2_melteddf(mymatrix,annot )
+meltedlog2data <- matrix_N_annotdf_2_melteddf(mymatrix , annot )
 # Exploring Raw Data with log2 trandformation
-dir.create(paste0(path_Results_directory,"/Exploratory"), recursive = TRUE)
-pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"Raw_Data_log2_tranformed.pdf"),
-     width = 10, height = 7)
-autoplot( prcomp( mymatrix ), data = annot_4_plotting_pca, colour= 'Scan_ID') +
-  ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-autoplot( prcomp( mymatrix ), data = annot_4_plotting_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-autoplot( prcomp( mymatrix ), data = annot_4_plotting_pca, colour= 'Biopsy_year', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-autoplot( prcomp( mymatrix ), data = annot_4_plotting_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Scan_ID))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Histology_number))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill=Biopsy_year))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-q <- ggplot( meltedrawdata, aes(Unique_ID, value, fill= Morphological_Categories))
-q + geom_boxplot( )+ ggtitle(paste(data_label,"Raw Data log 2 tranformed"))
-dev.off()
+PCA_boxplots(  paste0( path_Results_directory,"/Exploratory" )  ,
+               mymatrix ,  annot_4_plotting_pca , meltedlog2data , paste( data_label, "Log2" ))
 
+########################################
+########
+########    1. Preprocessing
+########
+########################################
 ###################################
-#### Normalization between batch
+#### Normalization intra batch
 ###################################
 quantile_normalisation <- function(df){
   df_rank <- apply(df,2,rank,ties.method="min")
