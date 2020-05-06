@@ -153,8 +153,7 @@ source(paste0( Code_path,"/","PCA_box_density_plots.R") )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Exploratory" )  ,
                Rawmymatrix,  annot_4_plotting_pca , meltedrawdata , paste( data_label, "Data as given" ))
 
-table(annot$Morphological_Categories)
-
+table(annot$Morphological_Categories) # How many categories do you have
 ########################################
 ########
 ########    1. Preprocessing
@@ -172,199 +171,17 @@ PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
 
 
 
-
-
 ###################################
 #### Normalization intra batch
 ###################################
-quantile_normalisation <- function(df){
-  df_rank <- apply(df,2,rank,ties.method="min")
-  df_sorted <- data.frame(apply(df, 2, sort))
-  df_mean <- apply(df_sorted, 1, mean)
-  
-  index_to_mean <- function(my_index, my_mean){
-    return(my_mean[my_index])
-  }
-  
-  df_final <- apply(df_rank, 2, index_to_mean, my_mean=df_mean)
-  rownames(df_final) <- rownames(df)
-  return(df_final)
-}
-
-#test the function
-df <- data.frame(one=c(5,2,3,4),
-                 two=c(4,1,4,2),
-                 three=c(3,4,6,8)
-)
-rownames(df) <- toupper(letters[1:4])
-
-
-head( meltedrawdata )
-dim(meltedrawdata)
-head(table_melted_MtxAndScanID)
-
-
-
-melteddf4DensityPlots <- function(result_dir, onedf, annotdf_with_your_categories, label4title ){
-  
-  dir.create( result_dir, recursive = TRUE )
-  pdf( file=paste0(result_dir,"/" , label4title  ,".pdf"),
-       width = 10, height = 7)
-  
-  ScanIDEdited <- gsub("e RNA", "_" , as.character( onedf$Scan_ID ) ) 
-  ROI_ScanID <- paste0(ScanIDEdited,as.character( onedf$ROI_ID ))
-  table_with_uniqID <- cbind( ROI_ScanID, table )  # table with the uniqueID added
-  
-  colpositions_withgenes <- grep("OAZ1",colnames(table_with_uniqID)):dim(table_with_uniqID)[2]
-  table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars =  colpositions_withgenes)  # Melted table that consider the genes
-  
-  colnames(table_melted_MtxAndScanID)[2] <- "gene"
-  
-  ScanID4melted <- as.character( rep(onedf$Scan_ID, length(colpositions_withgenes)) )
-  
-  Morphological_Categories <- as.character( annotdf$Morphological_Categories)
-  table_melted_MtxAndScanID <- cbind(table_melted_MtxAndScanID , ScanID4melted, Morphological_Categories) # Paste the Scan ID 
-  
-  colnames(table_melted_MtxAndScanID)[4] <- "ScanID" ; colnames(table_melted_MtxAndScanID)[5] <- "Morphological_Categories"
-  
-  plot1 <- ggplot(table_melted_MtxAndScanID, aes(x=value, fill = ScanID, y = ROI_ScanID)) + 
-    geom_density_ridges() + 
-    scale_x_continuous(trans = "log2") +
-    ggtitle(label4title)
-  
-  plot2 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = ScanID)) + 
-    geom_density() + 
-    scale_x_continuous(trans = "log2")+
-    ggtitle(label4title)
-  
-  plot3 <- ggplot(table_melted_MtxAndScanID, aes(x=value, fill = Morphological_Categories  , y = ROI_ScanID)) + 
-    geom_density_ridges() + 
-    scale_x_continuous(trans = "log2") +
-    ggtitle(label4title)
-  
-  plot4 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = Morphological_Categories )) + 
-    geom_density() + 
-    scale_x_continuous(trans = "log2")+
-    ggtitle(label4title)
-  
-  print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  dev.off()
-  
-}
-
-
-  
-melteddf4DensityPlots <- function(result_dir, onedf, annotdf_with_your_categories, label4title ){
-
-  dir.create( result_dir, recursive = TRUE )
-  pdf( file=paste0(result_dir,"/" , label4title  ,".pdf"),
-       width = 10, height = 7)
-  
-  ScanIDEdited <- gsub("e RNA", "_" , as.character( onedf$Scan_ID ) ) 
-  ROI_ScanID <- paste0(ScanIDEdited,as.character( onedf$ROI_ID ))
-  table_with_uniqID <- cbind( ROI_ScanID, table )  # table with the uniqueID added
-  
-  colpositions_withgenes <- grep("OAZ1",colnames(table_with_uniqID)):dim(table_with_uniqID)[2]
-  table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars =  colpositions_withgenes)  # Melted table that consider the genes
-  
-  colnames(table_melted_MtxAndScanID)[2] <- "gene"
-  
-  ScanID4melted <- as.character( rep(onedf$Scan_ID, length(colpositions_withgenes)) )
-
-  Morphological_Categories <- as.character( annotdf$Morphological_Categories)
-  table_melted_MtxAndScanID <- cbind(table_melted_MtxAndScanID , ScanID4melted, Morphological_Categories) # Paste the Scan ID 
-  
-  colnames(table_melted_MtxAndScanID)[4] <- "ScanID" ; colnames(table_melted_MtxAndScanID)[5] <- "Morphological_Categories"
-  
-  plot1 <- ggplot(table_melted_MtxAndScanID, aes(x=value, fill = ScanID, y = ROI_ScanID)) + 
-    geom_density_ridges() + 
-    scale_x_continuous(trans = "log2") +
-    ggtitle(label4title)
-  
-  plot2 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = ScanID)) + 
-    geom_density() + 
-    scale_x_continuous(trans = "log2")+
-    ggtitle(label4title)
-  
-  plot3 <- ggplot(table_melted_MtxAndScanID, aes(x=value, fill = Morphological_Categories  , y = ROI_ScanID)) + 
-    geom_density_ridges() + 
-    scale_x_continuous(trans = "log2") +
-    ggtitle(label4title)
-  
-  plot4 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = Morphological_Categories )) + 
-    geom_density() + 
-    scale_x_continuous(trans = "log2")+
-    ggtitle(label4title)
-  
-  print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  dev.off()
-  
-}
-
-result_dir <- paste0( path_Results_directory,"/Preprocessing" )   
-onedf <- table
-annotdf_with_your_categories <- annotdf
-label4title<- paste0( data_label, "_density_plot" )
-
-
-
-melteddf4DensityPlots <- function(result_dir, onedf, annotdf_with_your_categories, label4title ){
-  
-  dir.create( result_dir, recursive = TRUE )
-  pdf( file=paste0(result_dir,"/" , label4title  ,".pdf"),
-       width = 10, height = 7)
-  
-  ScanIDEdited <- gsub("e RNA", "_" , as.character( onedf$Scan_ID ) ) 
-  ROI_ScanID <- paste0(ScanIDEdited,as.character( onedf$ROI_ID ))
-  table_with_uniqID <- cbind( ROI_ScanID, table )  # table with the uniqueID added
-  
-  colpositions_withgenes <- grep("OAZ1",colnames(table_with_uniqID)):dim(table_with_uniqID)[2]
-  table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="ROI_ScanID",measure.vars =  colpositions_withgenes)  # Melted table that consider the genes
-  
-  colnames(table_melted_MtxAndScanID)[2] <- "gene"
-  
-  ScanID4melted <- as.character( rep(onedf$Scan_ID, length(colpositions_withgenes)) )
-  
-  Morphological_Categories <- as.character( annotdf$Morphological_Categories)
-  table_melted_MtxAndScanID <- cbind(table_melted_MtxAndScanID , ScanID4melted, Morphological_Categories) # Paste the Scan ID 
-  
-  colnames(table_melted_MtxAndScanID)[4] <- "ScanID" ; colnames(table_melted_MtxAndScanID)[5] <- "Morphological_Categories"
-  
-  plot1 <- ggplot(table_melted_MtxAndScanID, aes(x=value, fill = ScanID, y = ROI_ScanID)) + 
-    geom_density_ridges() + 
-    scale_x_continuous() +
-    ggtitle(label4title)
-  
-  plot2 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = ScanID)) + 
-    geom_density() + 
-    scale_x_continuous()+
-    ggtitle(label4title)
-  
-  plot3 <- ggplot(table_melted_MtxAndScanID, aes(x=value, fill = Morphological_Categories  , y = ROI_ScanID)) + 
-    geom_density_ridges() + 
-    #scale_x_continuous() +
-    ggtitle(label4title)
-  
-  plot4 <- ggplot(table_melted_MtxAndScanID, aes(x=value, color = Morphological_Categories )) + 
-    geom_density() + 
-    scale_x_continuous()+
-    ggtitle(label4title)
-  
-  print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  dev.off()
-  
-}
-
-
-
-melteddf4GeomDenRidges(  paste0( path_Results_directory,"/Preprocessing" ) , table , annotdf, paste0( data_label, "_density_plot" )  )
+### source( paste0( Code_path,"/","quantile_normalisation.R") )
 
 
 ################################
-###### quantile normalization 
+###### quantile normalization   , normalizeQuantiles
 ################################
 matrix4intrabatchnorm <- cbind(as.character(table$Scan_ID),as.data.frame(mymatrix))
-colnames(matrix4intrabatchnorm) <- "batch"
+colnames(matrix4intrabatchnorm)[1] <- "batch"
 matrix4intrabatchnorm[,"batch"] <- as.factor( matrix4intrabatchnorm[,"batch"] )
 matrix4intrabatchnorm[1:4,1:4]
 
@@ -376,6 +193,7 @@ bye1stcol <- function(df){
   return(df)
 } 
 list_splited_table_no1stcol <- lapply(list_splited_table, bye1stcol)
+
 putcolnmaes <- function(df){
   colnames(df) <- colnames(mymatrix)
   return(df)
@@ -384,74 +202,55 @@ list_splited_table_propercolnames <- lapply(list_splited_table_no1stcol, putcoln
 list_splited_table_propercolnames[[1]][1:4,1:4]
 
 list_splited_table_t <- lapply(list_splited_table_propercolnames, t )
+
 makeme_num_mat <-function(df){
   df <- as.matrix(df)
   mode(df) <- "numeric"
   return(df)
 }
 list_splited_nummat <- lapply(list_splited_table_t, makeme_num_mat)
-list_splitd_qnorm <- lapply(list_splited_nummat, quantile_normalisation)
+list_splited_nummat[[1]][1:4,1:4]
+
+list_splitd_qnorm <- lapply(list_splited_nummat,  normalizeQuantiles)
+list_splitd_qnorm[[1]][1:4,1:4]
+
 qnormmat <- do.call(cbind, list_splitd_qnorm)
 dim(qnormmat)
 qnormmat_t <- t(qnormmat)
 dim(qnormmat_t)
-qnormmat_t[12:15, 1:5]
-mymatrix[12:15,1:5]
+rownames(qnormmat_t) == rownames( mymatrix)
+colnames(qnormmat_t) == colnames( mymatrix)
+qnormmat_t[1:4,1:4]
 
 ### Achtung!! all normalization
 #qnormmat_t<-quantile_normalisation(t(mymatrix))
 qnormmat_t[1:4,1:4]
 t(mymatrix)[1:4,1:4]
-plotDensities(t(qnormmat_t), legend = FALSE)
-plotDensities(t(qnormmat_t))
+plotDensities( t(qnormmat_t) , legend = FALSE)
+plotDensities( t(qnormmat_t) )
+
+qnorm_all_of_once<- normalizeQuantiles(t(mymatrix))
 
 #############
 #### visualize your normalized data
 ##############
-qnormmat_t[1:4,1:4]
-head(table)
+melteqnormmat_t <- matrix_N_annotdf_2_melteddf( qnormmat_t , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        qnormmat_t ,  annot_4_plotting_pca , melteqnormmat_t , paste( data_label, "Log2_Qnorm_intra" ))
 
-colpositions_withoutgenes <- 1:(grep("OAZ1",colnames(table))-1)
-table_qnorm <- cbind(table[,colpositions_withoutgenes], qnormmat_t)
+melteqqnorm_all_of_once <- matrix_N_annotdf_2_melteddf( t(qnorm_all_of_once) , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        t(qnorm_all_of_once) ,  annot_4_plotting_pca , melteqqnorm_all_of_once , paste( data_label, "Log2_Qnorm_all_inonce" ))
 
-ScanIDEdited_qnorm <- as.character(table_qnorm$Scan_ID) ; ScanIDEdited_qnorm <- gsub("e RNA","_",ScanIDEdited_qnorm)
-ROI_ScanID_qnorm <- paste0(ScanIDEdited_qnorm,as.character(table_qnorm$ROI_ID))
-table_with_uniqID_qnorm <- cbind(ROI_ScanID_qnorm,table_qnorm)
-colpositions_withgenes_qnorm <- grep("OAZ1",colnames(table_with_uniqID_qnorm)):dim(table_with_uniqID_qnorm)[2]
-table_melted_MtxAndScanID_qnorm <-melt(data=table_with_uniqID_qnorm, id.vars="ROI_ScanID_qnorm",measure.vars =  colpositions_withgenes_qnorm)
-#table_melted_MtxAndScanID <-melt(data=table_with_uniqID, id.vars="Scan_ID",measure.vars =  colpositions_withgenes)
-colnames(table_melted_MtxAndScanID_qnorm)[2] <- "gene"
-ScanID4melted_qnorm <- as.character( rep(table_qnorm$Scan_ID, length(colpositions_withgenes)) )
-ROI4melted_qnorm <- as.character( rep(table_qnorm$ROI_ID, length(colpositions_withgenes)) )
-#PathoDescrip4melted <- as.character( rep(table$, length(colpositions_withgenes)) )
-table_melted_MtxAndScanID_qnorm <- cbind(table_melted_MtxAndScanID_qnorm , ScanID4melted_qnorm)
-
-head(table_qnorm)
-head(table_melted_MtxAndScanID_qnorm, 100)
-
-plot3 <- ggplot(table_melted_MtxAndScanID_qnorm, aes(x=value, fill = ScanID4melted_qnorm, y = ROI_ScanID_qnorm)) + 
-  geom_density_ridges() 
-  #scale_x_continuous(trans = "log10") +
-  #ggtitle("Density Scaled to 1")
-plot3
-
-plot4 <- ggplot(table_melted_MtxAndScanID_qnorm, aes(x=value, color = ScanID4melted_qnorm)) + 
-  geom_density() 
-  #scale_x_continuous(trans = "log2")+
-  #ggtitle("Height Scaled to X")
-
-plot_grid(plot3, plot4, nrow = 1)
-
-
-##### normalize all togheter qnorm
-
+plotDensities( t(qnorm_all_of_once) , legend = FALSE)
+plotDensities( t(qnorm_all_of_once) )
+plotDensities( qnorm_all_of_once )
 
 
 #############
 ## Looking for batch effect
 #############
 ## Pheno object for combat
-#pheno <- annot[, c("Morphological_Categories","Histology_number")]
 pheno <- annot[, c("Morph_cat_Andre","Scan_ID")]
 pheno <- annot[, c("Morphological_Categories","Scan_ID")]
 colnames(pheno) <- c("subgroups","batch")
@@ -461,10 +260,67 @@ rownames(pheno) <- annot[,"Unique_ID"]
 pheno$batch <- as.factor(pheno$batch)
 batch<-pheno$batch
 modcombat<-model.matrix(~1, data=pheno)
-combat_mydata= ComBat(dat = t(qnormmat_t) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
-t(qnormmat_t)
+combat_qnormBsep = ComBat(dat = t(qnormmat_t) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+combat_qnormAllinOne = ComBat(dat = qnorm_all_of_once , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
+
 #modcombat<-model.matrix(~subgroups, data=pheno)
 #combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
+meltedcombat_qsepareted <- matrix_N_annotdf_2_melteddf( t(combat_qnormBsep) , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        t(combat_qnormBsep) ,  annot_4_plotting_pca , meltedcombat_qsepareted , paste( data_label, "Log2_QnormBatchSep_combat" ))
+
+meltedcombat_qnormAllinOne <- matrix_N_annotdf_2_melteddf( t(combat_qnormAllinOne) , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        t(combat_qnormAllinOne) ,  annot_4_plotting_pca , meltedcombat_qnormAllinOne , paste( data_label, "Log2_QnormInBatch_combatAcross" ))
+
+pheatmap(combat_qnormBsep , annotation_col = annot_4_plotting_pca )
+
+
+
+test = matrix( rnorm( 200 ), 20, 10)
+test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
+test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
+test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
+colnames(test) = paste("Test", 1:10, sep = "")
+rownames(test) = paste("Gene", 1:20, sep = "")
+
+# define the annotation
+annotation_row = data.frame(
+  GeneClass = factor(rep(c("Path1", "Path2", "Path3"), c(10, 4, 6))),
+  AdditionalAnnotation = c(rep("random1", 10), rep("random2", 10))
+)
+rownames(annotation_row) = paste("Gene", 1:20, sep = "")
+
+pheatmap(test, annotation_row = annot_4_plotting_pca)
+
+
+
+
+
+dim(test)
+
+
+
+
+
+
+
+dim(combat_qnormBsep)
+dim(annot)
+
+pheatmap(combat_qnormAllinOne )
+
+
+?pheatmap
+
+
+
+
+plotDensities( combat_mydata, legend = FALSE)
+plotDensities( combat_mydata )
+boxplot(combat_mydata)
 
 
 # After combat
