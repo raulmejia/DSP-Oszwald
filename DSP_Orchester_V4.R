@@ -170,82 +170,35 @@ PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         mymatrix ,  annot_4_plotting_pca , meltedlog2data , paste( data_label, "Log2" ))
 
 
-
 ###################################
 #### Normalization intra batch
 ###################################
-### source( paste0( Code_path,"/","quantile_normalisation.R") )
+source(paste0( Code_path,"/","Matrix_2_list_of_sub_matrices.R") )
+list_of_submatrices <- Matrix_2_list_of_sub_matrices( table$Scan_ID , mymatrix)
 
 
 ################################
 ###### quantile normalization   , normalizeQuantiles
 ################################
-matrix4intrabatchnorm <- cbind(as.character(table$Scan_ID),as.data.frame(mymatrix))
-colnames(matrix4intrabatchnorm)[1] <- "batch"
-matrix4intrabatchnorm[,"batch"] <- as.factor( matrix4intrabatchnorm[,"batch"] )
-matrix4intrabatchnorm[1:4,1:4]
-
-list_splited_table <- split(matrix4intrabatchnorm, matrix4intrabatchnorm$batch)
-bye1stcol <- function(df){
-  print(dim(df))
-  df<- df[,-1]
-  print(dim(df))
-  return(df)
-} 
-list_splited_table_no1stcol <- lapply(list_splited_table, bye1stcol)
-
-putcolnmaes <- function(df){
-  colnames(df) <- colnames(mymatrix)
-  return(df)
-}
-list_splited_table_propercolnames <- lapply(list_splited_table_no1stcol, putcolnmaes)
-list_splited_table_propercolnames[[1]][1:4,1:4]
-
-list_splited_table_t <- lapply(list_splited_table_propercolnames, t )
-
-makeme_num_mat <-function(df){
-  df <- as.matrix(df)
-  mode(df) <- "numeric"
-  return(df)
-}
-list_splited_nummat <- lapply(list_splited_table_t, makeme_num_mat)
-list_splited_nummat[[1]][1:4,1:4]
-
-list_splitd_qnorm <- lapply(list_splited_nummat,  normalizeQuantiles)
-list_splitd_qnorm[[1]][1:4,1:4]
-
+list_splitd_qnorm <- lapply( list_of_submatrices  ,  normalizeQuantiles)
 qnormmat <- do.call(cbind, list_splitd_qnorm)
-dim(qnormmat)
 qnormmat_t <- t(qnormmat)
-dim(qnormmat_t)
-rownames(qnormmat_t) == rownames( mymatrix)
-colnames(qnormmat_t) == colnames( mymatrix)
-qnormmat_t[1:4,1:4]
 
-### Achtung!! all normalization
-#qnormmat_t<-quantile_normalisation(t(mymatrix))
-qnormmat_t[1:4,1:4]
-t(mymatrix)[1:4,1:4]
-plotDensities( t(qnormmat_t) , legend = FALSE)
-plotDensities( t(qnormmat_t) )
-
+# All in once q norm
 qnorm_all_of_once<- normalizeQuantiles(t(mymatrix))
 
-#############
 #### visualize your normalized data
-##############
+
 melteqnormmat_t <- matrix_N_annotdf_2_melteddf( qnormmat_t , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         qnormmat_t ,  annot_4_plotting_pca , melteqnormmat_t , paste( data_label, "Log2_Qnorm_intra" ))
-
 melteqqnorm_all_of_once <- matrix_N_annotdf_2_melteddf( t(qnorm_all_of_once) , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         t(qnorm_all_of_once) ,  annot_4_plotting_pca , melteqqnorm_all_of_once , paste( data_label, "Log2_Qnorm_all_inonce" ))
 
-plotDensities( t(qnorm_all_of_once) , legend = FALSE)
-plotDensities( t(qnorm_all_of_once) )
-plotDensities( qnorm_all_of_once )
 
+#############
+#############
 
 #############
 ## Looking for batch effect
@@ -262,8 +215,6 @@ batch<-pheno$batch
 modcombat<-model.matrix(~1, data=pheno)
 combat_qnormBsep = ComBat(dat = t(qnormmat_t) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 combat_qnormAllinOne = ComBat(dat = qnorm_all_of_once , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
-
-
 #modcombat<-model.matrix(~subgroups, data=pheno)
 #combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
@@ -275,110 +226,5 @@ meltedcombat_qnormAllinOne <- matrix_N_annotdf_2_melteddf( t(combat_qnormAllinOn
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         t(combat_qnormAllinOne) ,  annot_4_plotting_pca , meltedcombat_qnormAllinOne , paste( data_label, "Log2_QnormInBatch_combatAcross" ))
 
-pheatmap(combat_qnormBsep , annotation_col = annot_4_plotting_pca )
-
-
-
-test = matrix( rnorm( 200 ), 20, 10)
-test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
-test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
-test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
-colnames(test) = paste("Test", 1:10, sep = "")
-rownames(test) = paste("Gene", 1:20, sep = "")
-
-# define the annotation
-annotation_row = data.frame(
-  GeneClass = factor(rep(c("Path1", "Path2", "Path3"), c(10, 4, 6))),
-  AdditionalAnnotation = c(rep("random1", 10), rep("random2", 10))
-)
-rownames(annotation_row) = paste("Gene", 1:20, sep = "")
-
-pheatmap(test, annotation_row = annot_4_plotting_pca)
-
-
-
-
-
-dim(test)
-
-
-
-
-
-
-
-dim(combat_qnormBsep)
-dim(annot)
-
-pheatmap(combat_qnormAllinOne )
-
-
-?pheatmap
-
-
-
-
-plotDensities( combat_mydata, legend = FALSE)
-plotDensities( combat_mydata )
-boxplot(combat_mydata)
-
-
-# After combat
-pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Postcombat.pdf"),
-     width = 10, height = 7)
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Scan_ID', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Biopsy_year', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-boxplot(combat_mydata, col=annot_4_plotting_pca$Scan_ID, main="Scan ID")
-boxplot(combat_mydata , col=annot_4_plotting_pca$Histology_number, main="Histology number")
-boxplot( combat_mydata , col=annot_4_plotting_pca$Biopsy_year, main="Biopsy year")
-boxplot( combat_mydata, col=annot_4_plotting_pca$Morphological_Categories , main="Morph Cat André"  )
-dev.off()
-
-pheatmap(combat_mydata, annotation= annot)
-pheatmap(combat_mydata, annotation= annot_4_plotting_pca)
-
-?pheatmap
-#############
-## Looking for batch effect
-#############
-## Pheno object for combat
-#pheno <- annot[, c("Morphological_Categories","Histology_number")]
-pheno <- annot[, c("Morph_cat_Andre","Scan_ID")]
-pheno <- annot[, c("Morphological_Categories","Scan_ID")]
-colnames(pheno) <- c("subgroups","batch")
-rownames(pheno) <- annot[,"Unique_ID"] 
-
-# Batch effect with combat
-pheno$batch <- as.factor(pheno$batch)
-batch<-pheno$batch
-modcombat<-model.matrix(~1, data=pheno)
-combat_mydata= ComBat(dat = t(mymatrix) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
-
-#modcombat<-model.matrix(~subgroups, data=pheno)
-#combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
-
-
-# After combat
-pdf( file=paste0(path_Results_directory,"/Exploratory","/" ,data_label,"_Postcombat.pdf"),
-     width = 10, height = 7)
-autoplot( prcomp( t(combat_mydata)  ), data = annot_4_plotting_pca, colour= 'Scan_ID', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Histology_number', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Biopsy.year', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-autoplot( prcomp( t(combat_mydata) ), data = annot_4_plotting_pca, colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
-  ggtitle(paste(data_label,"Post Combat"))
-boxplot(combat_mydata, col=annot_4_plotting_pca$Scan_ID, main="Scan ID")
-boxplot(combat_mydata , col=annot_4_plotting_pca$Histology.number, main="Histology number")
-boxplot( combat_mydata , col=annot_4_plotting_pca$Biopsy.year, main="Biopsy year")
-boxplot( combat_mydata, col=annot_4_plotting_pca$Morph.cat..Andre. , main="Morph Cat André"  )
-dev.off()
 
 

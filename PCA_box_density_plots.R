@@ -38,7 +38,7 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     ggtitle(label4title)
   print(plot4)
   print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  pheatmap( t(exp_matrix) ,cutree_cols = 4,  annotation_col  = annotdf[,c("Morphological_Categories","Histology_number","Scan_ID" )] ) 
+  pheatmap( t(exp_matrix) ,cutree_cols = 4,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )] ) 
   
   dev.off()  
 }
