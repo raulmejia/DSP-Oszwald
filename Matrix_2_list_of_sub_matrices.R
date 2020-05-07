@@ -1,3 +1,7 @@
+#factor_2_split_amatrix <- table$Scan_ID 
+#expmat <- expmat_log2
+
+
 bye1stcol <- function(df){
   print(dim(df))
   df<- df[,-1]
@@ -14,16 +18,21 @@ makeme_num_mat <-function(df){
   return(df)
 }
 
-Matrix_2_list_of_sub_matrices <- function( factor_2_split_amatrix, amatrix){
-  
+
+Matrix_2_list_of_sub_matrices <- function( factor_2_split_amatrix, expmat){
+  amatrix <- t(expmat)
   matrix4intrabatchnorm <- cbind(as.character( factor_2_split_amatrix ),as.data.frame( amatrix ))
   colnames(matrix4intrabatchnorm)[1] <- "batch"
   matrix4intrabatchnorm[,"batch"] <- as.factor( matrix4intrabatchnorm[,"batch"] )
-  
+  matrix4intrabatchnorm[1:4,1:4]
   list_splited_table <- split( matrix4intrabatchnorm, matrix4intrabatchnorm$batch )
+  list_splited_table[[1]][1:4,1:4]
   list_splited_table_no1stcol <- lapply(list_splited_table, bye1stcol)
-  list_splited_table_propercolnames <- lapply(list_splited_table_no1stcol, putcolnmaes)
-  list_splited_table_t <- lapply(list_splited_table_propercolnames, t )
+  list_splited_table_no1stcol[[1]][1:4,1:4]
+  list_splited_table_t <- lapply(list_splited_table_no1stcol, t )
+  list_splited_table_t[[1]][1:4,1:4]
+  #list_splited_table_propercolnames <- lapply(list_splited_table_no1stcol, putcolnmaes)
+  
   list_splited_nummat <- lapply(list_splited_table_t, makeme_num_mat)
   
   return(list_splited_nummat)

@@ -70,6 +70,10 @@ if (!require("affy")) {
   BiocManager::install("affy", ask =FALSE)
   library("affy")
 }
+if (!require("oligo")) {
+  BiocManager::install("oligo", ask =FALSE)
+  library("oligo")
+}
 
 ###################################
 #### Data given by the user
@@ -122,10 +126,11 @@ annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
 #### Extracting the Raw expression matrix
 ###################################
 colpositions_withgenes <- grep("OAZ1",colnames(table)):dim(table)[2]
-Rawmymatrix <- table[ ,colpositions_withgenes]
-Rawmymatrix <- as.matrix(Rawmymatrix)
+Rawmymatrix_Samp_as_Rows_GenesasCols <- table[ ,colpositions_withgenes]
+Rawmymatrix_Samp_as_Rows_GenesasCols <- as.matrix(Rawmymatrix_Samp_as_Rows_GenesasCols)
 mode( table[,'ROI_ID']) <- "character" 
-rownames( Rawmymatrix ) <- annot[,"Unique_ID"]
+rownames( Rawmymatrix_Samp_as_Rows_GenesasCols ) <- annot[,"Unique_ID"]
+Raw_expmat <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
 
 #####################
 # Annotation object for plotting pcas
@@ -133,12 +138,12 @@ rownames( Rawmymatrix ) <- annot[,"Unique_ID"]
 annot_4_plotting_pca <- cbind( annot[, c("Morph_cat_Andre","Histology_number","Scan_ID","Biopsy_year","Morphological_Categories")])
 annot_4_plotting_pca[,"Histology_number"] <- as.factor(annot_4_plotting_pca[,"Histology_number"])
 annot_4_plotting_pca[,"Biopsy_year"] <- as.factor(annot_4_plotting_pca[,"Biopsy_year"])
-rownames( annot_4_plotting_pca ) <- rownames( Rawmymatrix )
+rownames( annot_4_plotting_pca ) <- colnames( Raw_expmat )
 annot_4_plotting_pca$Morphological_Categories <- as.factor(annot_4_plotting_pca$Morphological_Categories)
 
 # loading the function to melt (reshape) the data to preparation for ggplot2 functions
 source( paste0( Code_path,"/","matrix_N_annotdf_2_melteddf.R") )
-meltedrawdata <- matrix_N_annotdf_2_melteddf( Rawmymatrix , annot )
+meltedrawdata <- matrix_N_annotdf_2_melteddf( Raw_expmat , annot )
 head( meltedrawdata )
 
 ########################################
@@ -151,7 +156,7 @@ head( meltedrawdata )
 ########
 source(paste0( Code_path,"/","PCA_box_density_plots.R") )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Exploratory" )  ,
-               Rawmymatrix,  annot_4_plotting_pca , meltedrawdata , paste( data_label, "Data as given" ))
+                        Raw_expmat ,  annot_4_plotting_pca , meltedrawdata , paste( data_label, "Data as given" ))
 
 table(annot$Morphological_Categories) # How many categories do you have
 ########################################
@@ -162,69 +167,156 @@ table(annot$Morphological_Categories) # How many categories do you have
 ##################
 ## log 2 transformation
 ##################
-mymatrix <- log2(Rawmymatrix)+1
-meltedlog2data <- matrix_N_annotdf_2_melteddf(mymatrix , annot )
+expmat_log2 <- log2( Raw_expmat )+1
+melted_expmat_log2 <- matrix_N_annotdf_2_melteddf(expmat_log2 , annot )
 
 # Visualize the data log2 transformed data
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        mymatrix ,  annot_4_plotting_pca , meltedlog2data , paste( data_label, "Log2" ))
+                        expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste( data_label, "Log2" ))
 
 
 ###################################
 #### Normalization intra batch
 ###################################
 source(paste0( Code_path,"/","Matrix_2_list_of_sub_matrices.R") )
-list_of_submatrices <- Matrix_2_list_of_sub_matrices( table$Scan_ID , mymatrix)
-
+list_of_submatrices <- Matrix_2_list_of_sub_matrices( table$Scan_ID , expmat_log2 )
 
 ################################
-###### quantile normalization   , normalizeQuantiles
+###### quantile normalization  (normalizeQuantiles) batch Separated
 ################################
 list_splitd_qnorm <- lapply( list_of_submatrices  ,  normalizeQuantiles)
-qnormmat <- do.call(cbind, list_splitd_qnorm)
-qnormmat_t <- t(qnormmat)
+mat_qnorm_sep_by_batch <- do.call(cbind, list_splitd_qnorm)
 
 # All in once q norm
-qnorm_all_of_once<- normalizeQuantiles(t(mymatrix))
+qnorm_all_of_once <- normalizeQuantiles( expmat_log2 )
 
 #### visualize your normalized data
-
-melteqnormmat_t <- matrix_N_annotdf_2_melteddf( qnormmat_t , annot )
+melted_mat_qnorm_sep_by_batch <- matrix_N_annotdf_2_melteddf( mat_qnorm_sep_by_batch , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        qnormmat_t ,  annot_4_plotting_pca , melteqnormmat_t , paste( data_label, "Log2_Qnorm_intra" ))
-melteqqnorm_all_of_once <- matrix_N_annotdf_2_melteddf( t(qnorm_all_of_once) , annot )
+                        mat_qnorm_sep_by_batch ,  annot_4_plotting_pca , melted_mat_qnorm_sep_by_batch , paste( data_label, "Log2_Qnorm_intra" ))
+
+melted_qnorm_all_of_once <- matrix_N_annotdf_2_melteddf( qnorm_all_of_once , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        t(qnorm_all_of_once) ,  annot_4_plotting_pca , melteqqnorm_all_of_once , paste( data_label, "Log2_Qnorm_all_inonce" ))
+                        qnorm_all_of_once ,  annot_4_plotting_pca , melteqqnorm_all_of_once , paste( data_label, "Log2_Qnorm_all_inonce" ))
 
 
-#############
-#############
+###########
+### cyclic loess normalization 
+############
+################################
+###### cyclic loess normalization batch Separated
+################################
+list_splitd_CLnorm <- lapply( list_of_submatrices  ,  function(x) {normalizeCyclicLoess(x, method = "affy")} )
+mat_cyclicloess_norm_sep_by_batch <- do.call(cbind, list_splitd_CLnorm)
+
+# all in once
+normalizeCyclicLoess( expmat_log2)
+expmat_log2_cyclic_loess_AO <- normalizeCyclicLoess( expmat_log2, method = "fast")
+
+# visualization
+melted_mat_cyclicloess_norm_sep_by_batch  <- matrix_N_annotdf_2_melteddf( mat_cyclicloess_norm_sep_by_batch  , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        mat_cyclicloess_norm_sep_by_batch  ,  annot_4_plotting_pca , melted_mat_cyclicloess_norm_sep_by_batch , paste( data_label, "Log2_CLnorm_intra" ))
+
+melted_expmat_log2_cyclic_loess_AO <- matrix_N_annotdf_2_melteddf( expmat_log2_cyclic_loess_AO  , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        expmat_log2_cyclic_loess_AO  ,  annot_4_plotting_pca , melted_expmat_log2_cyclic_loess_AO , paste( data_label, "Log2_CLnorm_all_inonce" ))
+
 
 #############
 ## Looking for batch effect
 #############
 ## Pheno object for combat
-pheno <- annot[, c("Morph_cat_Andre","Scan_ID")]
+#pheno <- annot[, c("Morph_cat_Andre","Scan_ID")]
 pheno <- annot[, c("Morphological_Categories","Scan_ID")]
 colnames(pheno) <- c("subgroups","batch")
 rownames(pheno) <- annot[,"Unique_ID"] 
 
 # Batch effect with combat
 pheno$batch <- as.factor(pheno$batch)
-batch<-pheno$batch
-modcombat<-model.matrix(~1, data=pheno)
-combat_qnormBsep = ComBat(dat = t(qnormmat_t) , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
-combat_qnormAllinOne = ComBat(dat = qnorm_all_of_once , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+batch <- pheno$batch
+modcombat <- model.matrix(~1, data=pheno)
+combat_qnormBsep = ComBat(dat = mat_qnorm_sep_by_batch , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+combat_qnormAllofOnce = ComBat(dat = qnorm_all_of_once , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+combat_cyclic_loess_BatchSep = ComBat(dat =  mat_cyclicloess_norm_sep_by_batch , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+combat_cyclic_loess_AO = ComBat(dat = expmat_log2_cyclic_loess_AO , batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
 #modcombat<-model.matrix(~subgroups, data=pheno)
 #combat_mydata<-ComBat(dat= t(mymatrix), batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
-meltedcombat_qsepareted <- matrix_N_annotdf_2_melteddf( t(combat_qnormBsep) , annot )
+### Visualization
+meltedcombat_qsepareted <- matrix_N_annotdf_2_melteddf( combat_qnormBsep , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        t(combat_qnormBsep) ,  annot_4_plotting_pca , meltedcombat_qsepareted , paste( data_label, "Log2_QnormBatchSep_combat" ))
+                        combat_qnormBsep ,  annot_4_plotting_pca , meltedcombat_qsepareted , paste( data_label, "Log2_QnormBatchSep_combat" ))
 
-meltedcombat_qnormAllinOne <- matrix_N_annotdf_2_melteddf( t(combat_qnormAllinOne) , annot )
+meltedcombat_qnormAllinOne <- matrix_N_annotdf_2_melteddf( combat_qnormAllofOnce , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        t(combat_qnormAllinOne) ,  annot_4_plotting_pca , meltedcombat_qnormAllinOne , paste( data_label, "Log2_QnormInBatch_combatAcross" ))
+                        combat_qnormAllofOnce ,  annot_4_plotting_pca , meltedcombat_qnormAllinOne , paste( data_label, "Log2_QnormInBatch_combatAcross" ))
+
+melted_combat_cyclic_loess_BatchSep <- matrix_N_annotdf_2_melteddf( combat_cyclic_loess_BatchSep , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        combat_cyclic_loess_BatchSep ,  annot_4_plotting_pca , melted_combat_cyclic_loess_BatchSep , paste( data_label, "Log2_CycLoessBatchSep_combat" ))
+
+meltedcombat_cyclic_loess_AO <- matrix_N_annotdf_2_melteddf( combat_cyclic_loess_AO , annot )
+PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+                        combat_cyclic_loess_AO ,  annot_4_plotting_pca , meltedcombat_cyclic_loess_AO , paste( data_label, "Log2_CycLoessAO_combat" ))
+
+
+## MA plot
+limma::plotMA(  expmat_log2, array=3, main = c("MA plot exp Mat" , "array_number",3)  )
+limma::plotMA( combat_qnormAllinOne, array=3)
+limma::plotMA(  expmat_log2, array=1)
+limma::plotMA( combat_qnormAllinOne, array=1)
+
+################
+#### Differential expression
+################
+
+# Create ExpressionSet object
+
+
+
+
+
+
+
+
+myphenoData <- AnnotatedDataFrame(annot_4_plotting_pca)
+Eset_combat_qnormAllinOne <- ExpressionSet(assayData = combat_qnormAllinOne,
+                                           phenoData = myphenoData)
+
+
+
+class(Eset_combat_qnormAllinOne)
+.MySet <- setClass("MySet", contains="eSet")
+.MySet(combat_qnormAllinOne)
+?assayData
+
+just.rma()
+
+Eset_combat_qnormAllinOne
+
+cyclicloess <- normalize( Eset_combat_qnormAllinOne,  norm.method = "cyclicloess" )
+cyclicloess <- normalize( Eset_combat_qnormAllinOne,  norm.method = "cyclicloess" )
+normalizeBetweenArrays(object, method=NULL, targets=NULL, cyclic.method="fast", ...)
+
+expmat_log2_cyclic_loess <- normalizeCyclicLoess( expmat_log2, weights = NULL, span=0.7, iterations = 3, method = "fast")
+expmat_log2_cyclic_loess <- normalizeCyclicLoess( expmat_log2, method = "affy")
+plotDensities( expmat_log2_cyclic_loess )
+
+
+
+oligo::rma( Eset_combat_qnormAllinOne )
+rma(Eset_combat_qnormAllinOne)
+
+expressinSet
+
+# View the number of features (rows) and samples (columns)
+dim(eset)
+
+
+# Afeter DEA
+## https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/plotMA
 
 
 

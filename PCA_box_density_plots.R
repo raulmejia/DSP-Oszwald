@@ -1,16 +1,17 @@
 
 
 PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, label4title  ){
+  exp_matrix_T <- t(exp_matrix)
   dir.create( result_dir, recursive = TRUE )
   pdf( file=paste0(result_dir,"/" , label4title ,".pdf"),
        width = 10, height = 7)
-  print(autoplot( prcomp( exp_matrix ), data = annotdf, colour= 'Scan_ID') +
+  print(autoplot( prcomp( exp_matrix_T ), data = annotdf, colour= 'Scan_ID') +
           ggtitle(paste(label4title )))
-  print(autoplot( prcomp( exp_matrix ), data = annotdf , colour= 'Histology_number', label = TRUE, label.size = 3) +
+  print(autoplot( prcomp( exp_matrix_T ), data = annotdf , colour= 'Histology_number', label = TRUE, label.size = 3) +
           ggtitle(paste( label4title  )))
-  print(autoplot( prcomp( exp_matrix ), data = annotdf , colour= 'Biopsy_year', label = TRUE, label.size = 3) +
+  print(autoplot( prcomp( exp_matrix_T ), data = annotdf , colour= 'Biopsy_year', label = TRUE, label.size = 3) +
           ggtitle(paste( label4title  ) ) )
-  print(  autoplot( prcomp( exp_matrix ), data = annotdf , colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
+  print(  autoplot( prcomp( exp_matrix_T ), data = annotdf , colour= 'Morphological_Categories', label = TRUE, label.size = 3) +
             ggtitle(paste( label4title )) )
   q <- ggplot( melteddf , aes(Unique_ID, value, fill=Scan_ID))
   print( q + geom_boxplot( )+ ggtitle(paste( label4title )) )
@@ -38,7 +39,7 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     ggtitle(label4title)
   print(plot4)
   print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  pheatmap( t(exp_matrix) ,cutree_cols = 4,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )] ) 
+  pheatmap( exp_matrix ,cutree_cols = 4,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )] ) 
   
   dev.off()  
 }
