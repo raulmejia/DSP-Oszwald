@@ -74,6 +74,15 @@ if (!require("oligo")) {
   BiocManager::install("oligo", ask =FALSE)
   library("oligo")
 }
+if (!require("Rtsne")) {
+  BiocManager::install("Rtsne", ask =FALSE)
+  library("Rtsne")
+}
+if (!require("M3C")) {
+  BiocManager::install("M3C", ask =FALSE)
+  library("M3C")
+}
+
 
 ###################################
 #### Data given by the user
@@ -263,59 +272,17 @@ PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
 
 
 ## MA plot
+
 limma::plotMA(  expmat_log2, array=3, main = c("MA plot exp Mat" , "array_number",3)  )
-limma::plotMA( combat_qnormAllinOne, array=3)
+limma::plotMA( combat_qnormAllofOnce, array=3)
+limma::plotMA( combat_qnormAllofOnce, array=1)
+
 limma::plotMA(  expmat_log2, array=1)
-limma::plotMA( combat_qnormAllinOne, array=1)
-
-################
-#### Differential expression
-################
-
-# Create ExpressionSet object
 
 
 
-
-
-
-
-
-myphenoData <- AnnotatedDataFrame(annot_4_plotting_pca)
-Eset_combat_qnormAllinOne <- ExpressionSet(assayData = combat_qnormAllinOne,
-                                           phenoData = myphenoData)
-
-
-
-class(Eset_combat_qnormAllinOne)
-.MySet <- setClass("MySet", contains="eSet")
-.MySet(combat_qnormAllinOne)
-?assayData
-
-just.rma()
-
-Eset_combat_qnormAllinOne
-
-cyclicloess <- normalize( Eset_combat_qnormAllinOne,  norm.method = "cyclicloess" )
-cyclicloess <- normalize( Eset_combat_qnormAllinOne,  norm.method = "cyclicloess" )
-normalizeBetweenArrays(object, method=NULL, targets=NULL, cyclic.method="fast", ...)
-
-expmat_log2_cyclic_loess <- normalizeCyclicLoess( expmat_log2, weights = NULL, span=0.7, iterations = 3, method = "fast")
-expmat_log2_cyclic_loess <- normalizeCyclicLoess( expmat_log2, method = "affy")
-plotDensities( expmat_log2_cyclic_loess )
-
-
-
-oligo::rma( Eset_combat_qnormAllinOne )
-rma(Eset_combat_qnormAllinOne)
-
-expressinSet
-
-# View the number of features (rows) and samples (columns)
-dim(eset)
-
-
-# Afeter DEA
+dev.off()
+# After DEAnalysis
 ## https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/plotMA
 
 

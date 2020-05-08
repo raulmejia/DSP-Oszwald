@@ -39,7 +39,54 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     ggtitle(label4title)
   print(plot4)
   print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  pheatmap( exp_matrix ,cutree_cols = 4,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )] ) 
+  pheatmap( exp_matrix ,cutree_cols = 4,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )], fontsize = 4) 
+  #  fontsize_row=3, fontsize_col=3
+  
+  tsne_model_1 = Rtsne(  t(exp_matrix)  , check_duplicates=FALSE, pca=TRUE, perplexity=5, theta=0.5, dims=2)
+  d_tsne_1 = as.data.frame( tsne_model_1$Y )
+  
+  d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$Scan_ID)
+  mytsneplot_Nocolors <- ggplot(d_tsne_1_simplecols, aes(x=V1, y=V2 )) +
+    geom_point(size=2.5) +
+    guides(colour=guide_legend(override.aes=list(size=6))) +
+    xlab("") + ylab("") +
+    ggtitle( paste("t-SNE",label4title) ) +
+    theme_light(base_size=20) +
+    theme(axis.text.x=element_blank(),
+          axis.text.y=element_blank()) +
+    scale_colour_brewer(palette = "Set1")
+  print(mytsneplot_Nocolors)
+  
+  d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$Scan_ID)
+  colnames(d_tsne_1_simplecols)[3] <- "Scan_ID"
+  mytsneplot_colScanID <- ggplot(d_tsne_1_simplecols, aes(x=V1, y=V2 , col=Scan_ID )) +
+    geom_point(size=2.5) +
+    guides(colour=guide_legend(override.aes=list(size=6))) +
+    xlab("") + ylab("") +
+    ggtitle( paste("t-SNE",label4title) ) +
+    theme_light(base_size=20) +
+    theme(axis.text.x=element_blank(),
+          axis.text.y=element_blank()) +
+    scale_colour_brewer(palette = "Set1")
+  print(mytsneplot_colScanID)
+  
+  d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$Morphological_Categories  )
+  colnames(d_tsne_1_simplecols)[3] <- "Morphological_Categories"
+  mytsneplot_colMorphological_Categories   <- ggplot(d_tsne_1_simplecols, aes(x=V1, y=V2 , col=Morphological_Categories   )) +
+    geom_point(size=2.5) +
+    guides(colour=guide_legend(override.aes=list(size=6))) +
+    xlab("") + ylab("") +
+    ggtitle( paste("t-SNE",label4title) ) +
+    theme_light(base_size=20) +
+    theme(axis.text.x=element_blank(),
+          axis.text.y=element_blank()) +
+    scale_colour_brewer(palette = "Set1")
+  print( mytsneplot_colMorphological_Categories )
+  
+  
+  
+  
+  
   
   dev.off()  
 }
