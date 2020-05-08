@@ -100,14 +100,19 @@ path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annot
 #path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 #data_label<- "HK"
 
-path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+#path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+#path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
+path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 
 Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
 # Path where are the rest of your scripts
 
-path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
+#path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
+path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/AreaNorm"
 
-data_label<- "NucleiNorm"
+#data_label<- "NucleiNorm"
+#data_label<- "AreaNorm"
+data_label<- "HKNorm"
 
 colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
   # please don't use spaces or parenthesis/brackets in the names of your columns
@@ -276,7 +281,6 @@ PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
 limma::plotMA(  expmat_log2, array=3, main = c("MA plot exp Mat" , "array_number",3)  )
 limma::plotMA( combat_qnormAllofOnce, array=3)
 limma::plotMA( combat_qnormAllofOnce, array=1)
-
 limma::plotMA(  expmat_log2, array=1)
 
 
