@@ -82,7 +82,10 @@ if (!require("M3C")) {
   BiocManager::install("M3C", ask =FALSE)
   library("M3C")
 }
-
+if (!require("tidyverse")) {
+  BiocManager::install("tidyverse", ask =FALSE)
+  library("tidyverse")
+}
 
 ###################################
 #### Data given by the user
@@ -98,21 +101,24 @@ if (!require("M3C")) {
 path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/Annotation_file_Symplified_Corrected_colnames_NOspaces.csv"
 #path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/DSP_ROI_annotations_outcome_v2_RM_cols.csv"
 #path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
-#data_label<- "HK"
 
-#path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
-#path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
-path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
+path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
+# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
+# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
 
 Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
 # Path where are the rest of your scripts
 
-#path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
-path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/AreaNorm"
+path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
+# path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/AreaNorm"
+# path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/HKNorm"
+#path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/SNR"
 
-#data_label<- "NucleiNorm"
-#data_label<- "AreaNorm"
-data_label<- "HKNorm"
+# data_label<- "NucleiNorm"
+# data_label<- "AreaNorm"
+# data_label<- "HKNorm"
+data_label<- "SNR"
 
 colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
   # please don't use spaces or parenthesis/brackets in the names of your columns
@@ -144,7 +150,16 @@ Rawmymatrix_Samp_as_Rows_GenesasCols <- table[ ,colpositions_withgenes]
 Rawmymatrix_Samp_as_Rows_GenesasCols <- as.matrix(Rawmymatrix_Samp_as_Rows_GenesasCols)
 mode( table[,'ROI_ID']) <- "character" 
 rownames( Rawmymatrix_Samp_as_Rows_GenesasCols ) <- annot[,"Unique_ID"]
+
 Raw_expmat <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
+# Raw_expmat_Noised <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
+# cutoff_val <- mean(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])+ 2*sd(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])
+# row_indices <- apply( Raw_expmat, 1, function( x ) any( x > cutoff_val ) )
+# Raw_expmat <- Raw_expmat_Noised[row_indices,]
+
+#######
+### Only for SNR matriy
+######
 
 #####################
 # Annotation object for plotting pcas
@@ -276,8 +291,7 @@ PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         combat_cyclic_loess_AO ,  annot_4_plotting_pca , meltedcombat_cyclic_loess_AO , paste( data_label, "Log2_CycLoessAO_combat" ))
 
 
-## MA plot
-
+## MA plot Checking qualiy controls 
 limma::plotMA(  expmat_log2, array=3, main = c("MA plot exp Mat" , "array_number",3)  )
 limma::plotMA( combat_qnormAllofOnce, array=3)
 limma::plotMA( combat_qnormAllofOnce, array=1)
@@ -289,5 +303,80 @@ dev.off()
 # After DEAnalysis
 ## https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/plotMA
 
+
+limma
+
+RNA degradation with "AffyRNAdeg"
+
+
+combat_qnormBsep
+
+# Create design matrix for leukemia study
+testchr<- as.character(annot$Morphological_Categories)
+testchr[ testchr == "normal"  ] <- "normal"
+testchr[ testchr != "normal"  ] <- "disease"
+test2df   <- data.frame(testchr)
+colnames(test2df) <- "Mycat"
+
+design <- model.matrix(~Mycat, data = test2df)
+
+# Count the number of samples modeled by each coefficient
+colSums(design)
+
+# Load package
+library(limma)
+
+# Fit the model
+fit <- lmFit(combat_qnormBsep, design)
+
+# Calculate the t-statistics
+fit <- eBayes(fit)
+
+# Summarize results
+results <- decideTests(fit[, "Mycatnormal"])
+
+#options(digits=2) 
+
+genes<- topTable(fit, coef=2, n=60, adjust="BH") 
+summary(results)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# https://wiki.bits.vib.be/index.php/Analyze_your_own_microarray_data_in_R/Bioconductor
 
 
