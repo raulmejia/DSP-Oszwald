@@ -160,7 +160,7 @@ Raw_expmat <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
 
 Raw_expmat_Noised <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
 cutoff_val <- mean(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])+ 2*sd(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])
-cutoff_val <- max(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])
+#cutoff_val <- max(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])
 row_indices <- apply( Raw_expmat, 1, function( x ) any( x > cutoff_val ) )
 
 Raw_expmat <- Raw_expmat_Noised[row_indices,]
@@ -305,23 +305,26 @@ limma::plotMA( combat_qnormAllofOnce, array=1)
 limma::plotMA(  expmat_log2, array=1)
 
 
-
-dev.off()
 # After DEAnalysis
 ## https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/plotMA
 
 
-limma
 
-RNA degradation with "AffyRNAdeg"
+
+# RNA degradation with "AffyRNAdeg"
+
+table( annot$Morphological_Categories )
+
+
+dim(combat_cyclic_loess_AO)
 
 
 combat_qnormBsep
 
 # Create design matrix for leukemia study
 testchr<- as.character(annot$Morphological_Categories)
-testchr[ testchr == "normal"  ] <- "normal"
-testchr[ testchr != "normal"  ] <- "disease"
+testchr[ testchr == "Normal"  ] <- "Normal"
+testchr[ testchr != "Normal"  ] <- "disease"
 test2df   <- data.frame(testchr)
 colnames(test2df) <- "Mycat"
 
@@ -341,6 +344,7 @@ fit <- eBayes(fit)
 
 # Summarize results
 results <- decideTests(fit[, "Mycatnormal"])
+results <- decideTests(fit[, "MycatNormal"])
 
 #options(digits=2) 
 
@@ -348,9 +352,79 @@ genes<- topTable(fit, coef=2, n=60, adjust="BH")
 summary(results)
 
 
+#---------------------------------
+Morph_cat_chr <- as.character(annot$Morphological_Categories)
+log_Norm_necr_w_cell <- (grepl("Normal",Morph_cat_chr ) | grepl("necrosis_w_cell_cresc",Morph_cat_chr ) )
+Normal_nec_w_cresc_df <- data.frame(Morph_cat_chr [log_Norm_necr_w_cell] )
+colnames(Normal_nec_w_cresc_df) <- "Mycat"
+
+design_crec_w <- model.matrix(~Mycat, data = Normal_nec_w_cresc_df)
+
+# Fit the model
+fit_crec_w <- lmFit( combat_qnormBsep[,log_Norm_necr_w_cell], design_crec_w )
+
+# Calculate the t-statistics
+fit_crec_w <- eBayes(fit_crec_w)
+
+# Summarize results
+results <- decideTests(fit_crec_w[, "MycatNormal"])
+
+#options(digits=2) 
+
+genes <- topTable(fit, coef=2, n=60, adjust="BH") 
+genes[,c("logFC","adj.P.Val")]
+summary(results)
 
 
+#--------------------------------
+Morph_cat_chr <- as.character(annot$Morphological_Categories)
+Normal_nec_w_cresc[ Normal_nec_w_cresc == "Normal"  ] <- "Normal"
+log_fibrocell_Crescent <- (grepl("Normal",Morph_cat_chr ) | grepl("fibrocell_Crescent",Morph_cat_chr ) )
+Normal_fibrocell_Crescent_df <- data.frame(Morph_cat_chr[log_fibrocell_Crescent] )
+colnames(Normal_fibrocell_Crescent_df) <- "Mycat"
 
+design_ibrocell_Crescent <- model.matrix(~Mycat, data = Normal_fibrocell_Crescent_df)
+
+# Fit the model
+fit_fibrocell_Crescent <- lmFit( combat_qnormBsep[,log_fibrocell_Crescent] , design_ibrocell_Crescent )
+
+# Calculate the t-statistics
+fit_fibrocell_Crescent <- eBayes(fit_fibrocell_Crescent)
+
+# Summarize results
+results_fibrocell_Crescent <- decideTests(fit_fibrocell_Crescent[, "MycatNormal"])
+
+#options(digits=2) 
+
+genes_fibrocell_Crescent <- topTable(fit_fibrocell_Crescent , coef=2, n=60, adjust="BH") 
+genes_fibrocell_Crescent[,c("logFC","adj.P.Val")]
+summary(results)
+
+
+#-----------------------------
+
+Morph_cat_chr <- as.character(annot$Morphological_Categories)
+log_necrosis_only <- (grepl("Normal",Morph_cat_chr ) | grepl("necrosis_only",Morph_cat_chr ) )
+Normal_necrosis_only_df <- data.frame(Morph_cat_chr[log_necrosis_only] )
+colnames(Normal_necrosis_only_df) <- "Mycat"
+
+design_necrosis_only <- model.matrix(~Mycat, data = Normal_necrosis_only_df)
+
+# Fit the model
+fit_necrosis_only <- lmFit( combat_qnormBsep[,log_necrosis_only] , design_necrosis_only )
+
+# Calculate the t-statistics
+fit_necrosis_only <- eBayes(fit_necrosis_only)
+
+# Summarize results
+results_necrosis_only <- decideTests(fit_necrosis_only[, "MycatNormal"])
+
+#options(digits=2) 
+
+genes_necrosis_only <- topTable(fit_necrosis_only , coef=2, n=60, adjust="BH") 
+
+genes_necrosis_only[,c("logFC","adj.P.Val")]
+summary( results_necrosis_only )
 
 
 
@@ -386,4 +460,5 @@ summary(results)
 
 # https://wiki.bits.vib.be/index.php/Analyze_your_own_microarray_data_in_R/Bioconductor
 
-
+annot[1:13,c(1:5,7,8)]
+table(annot$Morphological_Categories)
