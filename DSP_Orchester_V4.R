@@ -308,10 +308,29 @@ limma::plotMA(  expmat_log2, array=1)
 # After DEAnalysis
 ## https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/plotMA
 
-
-
-
 # RNA degradation with "AffyRNAdeg"
+
+
+mydesign <- model.matrix( ~ 0 + annot$Morphological_Categories)
+colnames(mydesign) <- gsub("annot\\$Morphological_Categories","",colnames(mydesign))
+contrast.matrix <- makeContrasts(paste0("Normal","-",setdiff(colnames(mydesign), "Normal")[1]),
+                                 paste0("Normal","-",setdiff(colnames(mydesign), "Normal")[2]),
+                                 paste0("Normal","-",setdiff(colnames(mydesign), "Normal")[3]),
+                                 paste0("Normal","-",setdiff(colnames(mydesign), "Normal")[4]),
+                                 paste0("Normal","-",setdiff(colnames(mydesign), "Normal")[5]),levels=mydesign)
+fit <- lmFit( combat_qnormBsep , mydesign )
+fita1c <-contrasts.fit(fit , contrast.matrix)
+fita1c<-eBayes(fita1c)
+
+
+
+fit<-lmFit(a1c[,1:200],design)
+contrast.matrix<-makeContrasts(Normal-Medium, Normal-High, Medium-High, levels=design)
+fita1c<-contrasts.fit(fit,contrast.matrix)
+fita1c<-eBayes(fit2)
+fita1c<-eBayes(fita1c)
+
+
 
 table( annot$Morphological_Categories )
 
