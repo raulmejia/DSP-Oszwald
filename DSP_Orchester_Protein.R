@@ -98,11 +98,9 @@ if (!require("tidyverse")) {
 #path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
 #path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
 
-path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/DSP_ROI_annotations_outcome_v2_RM_cols_swapped_numbers_by_cats.csv"
-#path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/DSP_ROI_annotations_outcome_v2_RM_cols.csv"
-#path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
+path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Protein/Annotation_Protein/Annotation_Protein_Andre_Mai_28_eigth_columns.csv"
 
-path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Protein/ProteinData_in_CSV_format/All_Data_Human_IO_Protein_NucleiNorm.csv"
 # path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
 # path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 # path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
@@ -110,7 +108,7 @@ path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CS
 Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
 # Path where are the rest of your scripts
 
-path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/RK_classification/Nuclei/mean_2sig_no_neg"
+path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Protein/Andre_classification_28_05_2020"
 # path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
 # path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/AreaNorm"
 # path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/HKNorm"
@@ -122,24 +120,24 @@ path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/RK_classi
 data_label<- "Nuclei"
 
 colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
-  # please don't use spaces or parenthesis/brackets in the names of your columns
-  # The files should have the folowing columns
-  # annotation file Morphological_Categories
-  
+# please don't use spaces or parenthesis/brackets in the names of your columns
+# The files should have the folowing columns
+# annotation file Morphological_Categories
+
 background_management <- "max"
 background_management <- "mean + 2*sigma"
 background_management <- "no filter"
+
+###################################
+#### Creating your result folders if they doesn't exist yet
+###################################
+dir.create(path_Results_directory , recursive = TRUE)
 
 ###################################
 #### Normalize your paths
 ###################################
 Code_path<-normalizePath(Code_path)
 path_Results_directory  <- normalizePath( path_Results_directory  )
-
-###################################
-#### Creating your result folders if they doesn't exist yet
-###################################
-dir.create(path_Results_directory , recursive = TRUE)
 
 ###################################
 #### Reading the annotation table and the table that cointains the expression data
@@ -150,7 +148,7 @@ annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
 ###################################
 #### Extracting the Raw expression matrix
 ###################################
-colpositions_withgenes <- grep("OAZ1",colnames(table)):dim(table)[2]
+colpositions_withgenes <- grep("GAPDH",colnames(table)):dim(table)[2]
 Rawmymatrix_Samp_as_Rows_GenesasCols <- table[ ,colpositions_withgenes]
 Rawmymatrix_Samp_as_Rows_GenesasCols <- as.matrix(Rawmymatrix_Samp_as_Rows_GenesasCols)
 mode( table[,'ROI_ID']) <- "character" 
@@ -159,13 +157,12 @@ rownames( Rawmymatrix_Samp_as_Rows_GenesasCols ) <- annot[,"Unique_ID"]
 Raw_expmat <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
 
 Raw_expmat_Noised <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
-cutoff_val <- mean(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])+ 2*sd(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])
-#cutoff_val <- max(Raw_expmat_Noised[grep("NegPrb",rownames(Raw_expmat_Noised)),])
+cutoff_val <- mean(Raw_expmat_Noised[grep("IgG",rownames(Raw_expmat_Noised)),])+ 2*sd(Raw_expmat_Noised[grep("IgG",rownames(Raw_expmat_Noised)),])
 row_indices <- apply( Raw_expmat, 1, function( x ) any( x > cutoff_val ) )
-
 Raw_expmat <- Raw_expmat_Noised[row_indices,]
-Raw_expmat <- Raw_expmat[- grep("NegPrb",rownames( Raw_expmat )) , ]
+Raw_expmat <- Raw_expmat[- grep("IgG",rownames( Raw_expmat )) , ]
 
+#Raw_expmat <- Raw_expmat_Noised 
 dim(Raw_expmat)
 
 #####################
@@ -233,7 +230,7 @@ PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
 
 melted_qnorm_all_of_once <- matrix_N_annotdf_2_melteddf( qnorm_all_of_once , annot )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        qnorm_all_of_once ,  annot_4_plotting_pca , melted_qnorm_all_of_once , paste( data_label, "Log2_Qnorm_all_inonce" ))
+                        qnorm_all_of_once ,  annot_4_plotting_pca , melted_qnorm_all_of_once  , paste( data_label, "Log2_Qnorm_all_inonce" ))
 
 
 ###########
@@ -297,14 +294,8 @@ meltedcombat_cyclic_loess_AO <- matrix_N_annotdf_2_melteddf( combat_cyclic_loess
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         combat_cyclic_loess_AO ,  annot_4_plotting_pca , meltedcombat_cyclic_loess_AO , paste( data_label, "Log2_CycLoessAO_combat" ))
 
-paste0( path_Results_directory,"/Preprocessing","/",paste0( data_label, "Log2_CycLoessBatchSep_combat" ),".tsv" )
-
-
 write.table( combat_qnormBsep, paste0( path_Results_directory,"/Preprocessing","/",paste0( data_label, "Log2_QnormBatchSep_combat" ),".tsv" ), sep="\t" )
 write.table( combat_cyclic_loess_BatchSep, paste0( path_Results_directory,"/Preprocessing","/",paste0( data_label, "Log2_CycLoessBatchSep_combat" ),".tsv" ), sep="\t" )
-
-?write.table
-head(combat_cyclic_loess_BatchSep )
 
 ## MA plot Checking qualiy controls 
 limma::plotMA(  expmat_log2, array=3, main = c("MA plot exp Mat" , "array_number",3)  )

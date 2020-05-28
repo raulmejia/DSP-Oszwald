@@ -1,3 +1,9 @@
+# result_dir <- paste0( path_Results_directory,"/Exploratory" )
+# exp_matrix <- Raw_expmat
+# annotdf <- annot_4_plotting_pca 
+# melteddf <- meltedrawdata 
+# label4title <- paste( data_label, "Data as given" )
+
 
 
 PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, label4title  ){
@@ -54,7 +60,7 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     theme_light(base_size=20) +
     theme(axis.text.x=element_blank(),
           axis.text.y=element_blank()) +
-    scale_colour_brewer(palette = "Set1")
+    scale_colour_brewer(palette = "Set3")
   print(mytsneplot_Nocolors)
   
   d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$Scan_ID)
@@ -67,7 +73,7 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     theme_light(base_size=20) +
     theme(axis.text.x=element_blank(),
           axis.text.y=element_blank()) +
-    scale_colour_brewer(palette = "Set1")
+    scale_colour_brewer(palette = "Set3")
   print(mytsneplot_colScanID)
   
   d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$Morphological_Categories  )
@@ -80,7 +86,7 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     theme_light(base_size=20) +
     theme(axis.text.x=element_blank(),
           axis.text.y=element_blank()) +
-    scale_colour_brewer(palette = "Set1")
+    scale_colour_brewer(palette = "Set3")
   print( mytsneplot_colMorphological_Categories )
   
   
