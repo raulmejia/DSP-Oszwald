@@ -3,6 +3,8 @@
 #### Author: Raúl Mejía
 #### The aim is to coordinate DSP data analysis 
 ###################################
+# The files who contain the pretended matrices should use "." Decimal insted of ","
+# The annotation file should contain columns with exactly the following names: "Morph_cat_Andre","Histology_number","Scan_ID","Biopsy_year","Morphological_Categories"
 ###################################
 #### 0) loading and/or installing required libraries
 ###################################
@@ -136,7 +138,7 @@ dir.create(path_Results_directory , recursive = TRUE)
 ###################################
 #### Normalize your paths
 ###################################
-Code_path<-normalizePath(Code_path)
+Code_path <- normalizePath(Code_path)
 path_Results_directory  <- normalizePath( path_Results_directory  )
 
 ###################################
