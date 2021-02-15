@@ -104,17 +104,19 @@ path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annot
 #path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Annotation/DSP_ROI_annotations_outcome_v2_RM_cols.csv"
 #path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
 
-path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/CTA/All_Data_CTA_CTA_Q3_Norm.tsv"
+path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/CTA/All_Data_CTA_CTA_Area_Norm.tsv"
 # In your annotation file should include the following column names
 # Unique_ID, Scan_ID, ROI_ID
+# the structure of the table is ROIs in the rows all the other in the columns
 ## Important!  Unique_ID must match in exactly the same order in table as well as annotation
-# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/All_Data_CTA_CTA_Probe_QC.tsv"
+# Your decimals should be separated by point not by comma
+# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/CTA/All_Data_CTA_CTA_Probe_QC.tsv"
 # path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/All_Data_CTA_CTA_Q3_Norm.tsv"
-# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/All_Data_CTA_CTA_Area_Norm.tsv"
+# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/CTA/All_Data_CTA_CTA_Area_Norm.tsv"
 
 Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  # Path where are the rest of your scripts
 
-path_Results_directory <- "/media/rmejia/mountme88/Projects/DSP/Results/CTA/Andre_classification/Q3/mean_2sig_no_neg"
+path_Results_directory <- "/media/rmejia/mountme88/Projects/DSP/Results/CTA/Andre_classification/Probe_QC/mean_2sig_no_neg"
 # path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/CTA/Andre_classification/Area/mean_2sig_no_neg"
 # path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/AreaNorm"
 # path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/HKNorm"
@@ -123,7 +125,7 @@ path_Results_directory <- "/media/rmejia/mountme88/Projects/DSP/Results/CTA/Andr
 # data_label<- "NucleiNorm"
 # data_label<- "AreaNorm"
 # data_label<- "HKNorm"
-data_label<- "Q3"
+data_label<- "Probe_QC"
 
 colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
 # please don't use spaces or parenthesis/brackets in the names of your columns

@@ -45,9 +45,9 @@ PCA_box_density_plots <- function(result_dir, exp_matrix, annotdf, melteddf, lab
     ggtitle(label4title)
   print(plot4)
   print(plot_grid(plot1, plot2, plot3, plot4, nrow = 2))
-  pheatmap( exp_matrix ,cutree_cols = 5,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )], fontsize = 4) 
-  #  fontsize_row=3, fontsize_col=3
-  
+  #pheatmap( exp_matrix ,cutree_cols = 5,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )], fontsize = 4) 
+  pheatmap( exp_matrix ,cutree_cols = 5, col = brewer.pal(  length(table(annotdf[,"Morphological_Categories"])) ,"Set3"),  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )], fontsize = 4) 
+
   tsne_model_1 = Rtsne(  t(exp_matrix)  , check_duplicates=FALSE, pca=TRUE, perplexity=5, theta=0.5, dims=2)
   d_tsne_1 = as.data.frame( tsne_model_1$Y )
   
