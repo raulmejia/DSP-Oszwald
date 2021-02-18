@@ -7,11 +7,19 @@
 ######  first all the comparisons will be made against it and then the other pairwise comparisons
 ######  will follow an alphabetical order.
 ##################################################################
+
+
+########################################
+##### required loading required packages 
+########################################
 if (!require("gtools")) {
   install.packages("gtools", ask =FALSE)
   library("gtools")
 }
 
+##########################
+##### Body
+##########################
 mymakeContrasts <- function( design_input ){ 
   n = length( colnames(design_input) )
   ncols_contrast_mat = (n * (n-1)) /2  # total number of pairwise comparisons
