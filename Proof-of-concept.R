@@ -1,31 +1,43 @@
 rm(list = ls())
 library("limma")
+library("tidyverse")
 
 # the name of your groups could be the non duplicated elements of
 # annotations dataframe
 
+
 sd <- 0.3*sqrt(4/rchisq(100,df=4))
-y <- matrix(rnorm(100*6,sd=sd),100,6)
-rownames(y) <- paste("Gene",1:100)
-y[1:2,4:6] <- y[1:2,4:6] + 2
+y <- matrix(rnorm(100*6,sd=sd),60,10)
+rownames(y) <- paste("Gene",1:60)
+colnames(y) <- paste("Sample" ,1:10 )
+y[1:10,1:3] <- y[1:10,1:3] + 2
 
-# An appropriate desing matrix can be created and linear model
-# fitted using:
-design <- model.matrix(~ 0+factor(c(1,1,2,2,3,3)))
-colnames(design) <- c("group1", "group2", "group3")
-fit <- lmFit(y, design)
-efit <- eBayes(fit)
+annotdf <- data.frame(c(paste("Sample" ,1:10 )), 
+                      c("ein","zwei","ein","zwei","ein","zwei","drei","vier","drei","vier"))
+colnames(annotdf) <- c("samples","labels")
 
-# To do all the possible pair-wise comparisons the appropriate
-# contrast matrix can be created by:
-contrast.matrix <- makeContrasts(group2-group1, group3-group2, group3-group1, levels=design)
-fit2 <- contrasts.fit(fit, contrast.matrix)
-fit2 <- eBayes(fit2)
-topTable(fit2, coef=1, adjust="BH", number = 10)
-topTable(fit2, coef=2, adjust="BH")
-topTable(fit2, coef=3, adjust="BH")
+# ---
 
-results <- decideTests(fit2)
-?decideTests
+designmat <- model.matrix( ~0+  as.factor( annotdf$labels) )  # design matrix
+    colnames(designmat) <- levels(as.factor( annotdf$labels))
 
-vennDiagram(results)
+    
+myfit <- lmFit(y, designmat) # fitting the linear model
+    
+contrast.matrix <- makeContrasts(ein-zwei, ein-drei, levels=designmat) ## matrix of contrasts   
+myfit <- contrasts.fit(myfit, contrast.matrix)    
+myefit <- eBayes(myfit) # moderate standard errors of the estimated log-fold changes
+
+topTable( myefit , coef=1, adjust="BH", number = 10)
+topTable( myefit , coef=2, adjust="BH", number = 10)
+
+# write.table
+
+#results <- decideTests(myefit)
+#vennDiagram(results)
+
+
+
+
+
+
