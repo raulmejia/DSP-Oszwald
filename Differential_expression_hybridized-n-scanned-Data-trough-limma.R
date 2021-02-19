@@ -5,7 +5,7 @@
 ####    RNA program in https://github.com/raulmejia/DSP-Oszwald
 ####      
 ####     Input description:
-####        expression matrix: tab separated, rows = featrures, cols= sources/samples
+####        expression matrix: tab separated, rows = featrures, cols= sources/samples, there should not be colname over the first column(for the rownames)
 ####        annotdf: rows = cols from the expression matrix, you should provide the name of column that contain your labels
 ####    Author of the script: Raúl Mejía
 #### 
@@ -41,114 +41,112 @@ if (!require("tidyverse")) {
 #########################################
 myargs <- commandArgs(trailingOnly = TRUE)
 
-path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/RNA/NucleiLog2_QnormBatchSep_combat_2.txt"
+#path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/NucleiLog2_QnormBatchSep_combat_Prot_titleclean.txt"
 path_expression_matrix <- myargs[1]
 
-path_annotation_table <-"/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/RNA/Final_annot_RNA_20201212_odd_deleted.tsv"
+#path_annotation_table <-"/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/DSP_protein_annotation_Raul_20201211_odd_deleted.tsv"
 path_annotation_table <- myargs[2]
 
+# path_code <- "/media/rmejia/mountme88/code/DSP-Oszwald"
 path_code <- myargs[3] 
-path_code <- "/media/rmejia/mountme88/code/DSP-Oszwald"
-path_code <- normalizePath( path_code )
 
-Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Results/DEG"
-dir.create( Folder_to_save_results , recursive = TRUE)
-Folder_to_save_results <- normalizePath(Folder_to_save_results)
+Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Results/DEG/Protein/"
 Folder_to_save_results <- myargs[4]
 
-column_of_labels_in_the_annotdf <- "label" # name of the column in your annotation data frame that contains the labels
+#column_of_labels_in_the_annotdf <- "label" # name of the column in your annotation data frame that contains the labels
 column_of_labels_in_the_annotdf <- myargs[5]
 
+#mylfc = 0
+mylfc <- myargs[6]
 
-Label_for_yor_results <- "RNA_"
-Label_for_yor_results <- myargs[6]
+#myp.value = 0.05
+myp.value <- myargs[7]
+
+#Label_for_yor_results <- "Andre_GeoMx_Protein_DEG"
+Label_for_yor_results <- myargs[8]
+
+
+############################
+###### Basic Processing of data given by the user for example Paths
+############################
+path_code <- normalizePath( path_code )
+load_myMakeContrasts <- paste0(path_code,"/","libraries/makeallContrasts.R")
+source(load_myMakeContrasts)
+
+dir.create( Folder_to_save_results , recursive = TRUE)
+Folder_to_save_results <- normalizePath(Folder_to_save_results)
+
 
 ############################
 ###### Body
 #############################
-# the name of your groups could be the non duplicated elements of
-# annotations dataframe
+# reading the your matrices
 
-sd <- 0.3*sqrt(4/rchisq(100,df=4))
-y <- matrix(rnorm(100*6,sd=sd),60,10)
-rownames(y) <- paste("Gene",1:60)
-colnames(y) <- paste("Sample" ,1:10 )
-y[1:10,1:3] <- y[1:10,1:3] + 2
-
-annotdf <- data.frame(c(paste("Sample" ,1:10 )), 
-                      c("ein","zwei","ein","zwei","ein","zwei","drei","vier","drei","vier"))
-colnames(annotdf) <- c("samples","labels")
-
-# ---
 myexpmat <- read.table( file= path_expression_matrix , sep="\t", header = TRUE, row.names = 1)
 annotdf <- read.table( file= path_annotation_table, sep="\t", header = TRUE, row.names = 1)
 
-
-    # You can take away this and make it a different module of the program (to match, annotations and expression matrix)
+    # This chunk tries to match the intersection of your expression matrix and your annotation (maybe you can relocate it in an independet script)
     # if you want to normalize
-    colnames_expmat_nomarlized <- str_remove(colnames(myexpmat),"^X")
-    rownames_annodf_normalized <- str_replace(rownames(annotdf),"a_","_") %>%  str_replace("b_","_")
+    colnames_expmat_nomarlized <- str_remove(colnames(myexpmat),"^X") %>%  str_replace("a_","_") %>% str_replace("b_","_")# if a colname starts with a number R adds automatically an X
+    rownames_annodf_normalized <- str_replace(rownames(annotdf),"a_","_") %>%  str_replace("b_","_") # Those are unmeagniful elements 
 
-    positions_annot_in_expmat <- which( rownames_annodf_normalized %in% colnames_expmat_nomarlized) 
+    positions_annot_in_expmat <- which( rownames_annodf_normalized %in% colnames_expmat_nomarlized)  # fitting annot_df to exp matrix
     annotdf_fitted_2_expmat <- annotdf[positions_annot_in_expmat,]
 
-    # fitting_exp to annot_df 
-    positions_expmat_in_annot  <- which( colnames_expmat_nomarlized %in% rownames_annodf_normalized )
+    positions_expmat_in_annot  <- which( colnames_expmat_nomarlized %in% rownames_annodf_normalized ) # fitting_exp to annot_df 
     expmat_fitted_2_annot <- myexpmat[,positions_expmat_in_annot]
-
-    dim(annotdf_fitted_2_exp_mat)
-    dim( expmat_fitted_2_annot)
-
-    dim(myexpmat)
-    dim(designmat)
-
-
-
-designmat <- model.matrix( ~0+  as.factor( annotdf_fitted_2_exp_mat [,column_of_labels_in_the_annotdf]) )
-    colnames(designmat) <- levels(as.factor( annotdf_fitted_2_exp_mat [,column_of_labels_in_the_annotdf] ))
-   
     
+    print( paste0("your original expression matrix had: ", dim(myexpmat)[1]," features, and : ", dim(myexpmat)[2]," samples"))
+    print( paste0("your original annotation_table had: ", dim(annotdf)[1]," samples, and : ", dim(annotdf)[2]," columns"))
+    print("###")
+    print( paste0("after matching them your final expression matrix has: ", dim(expmat_fitted_2_annot)[1]," features, and : ", dim(expmat_fitted_2_annot)[2]," samples"))
+    print( paste0("after matching them your final annotation_table has: ", dim(annotdf_fitted_2_expmat)[1]," samples, and : ", dim(annotdf_fitted_2_expmat)[2]," columns"))
+    
+# Desgin Matrix
+designmat <- model.matrix( ~0+  as.factor( annotdf_fitted_2_expmat [,column_of_labels_in_the_annotdf]) )
+    colnames(designmat) <- levels(as.factor( annotdf_fitted_2_expmat [,column_of_labels_in_the_annotdf] ))
+   
+# Fitting the lineal model    
 myfit <- lmFit( expmat_fitted_2_annot , designmat  ) # fitting the linear model
 
 mycontMat <- mymakeContrasts(designmat) # make your matrix of contrasts
 
-myefit <- eBayes(myfit) # moderate standard errors of the estimated log-fold changes
+myfit2 <- contrasts.fit( myfit, mycontMat)
+myefit <- eBayes(myfit2) # moderate standard errors of the estimated log-fold changes
 
-
-do.call()
-
-list_TopTable <- list()
-
-list_TopTable <- topTable( myefit , coef=1, adjust="BH", number = 200)
+##################################################
+### Creating the object to store the results
+##################################################
+list_TopTable_mylfc_n_pval <- list()
+list_TopTable_mylfc_n_pval[[1]] <- topTable( myefit , coef=1, adjust="BH", p.value = myp.value, lfc = mylfc, number = Inf)
 for(k in 2:dim(mycontMat)[2]){
-  list_TopTable[[k]] <- topTable( myefit , coef=k, adjust="BH", number = 200)
+  list_TopTable_mylfc_n_pval[[k]] <- topTable( myefit , coef=k, adjust="BH", p.value = myp.value, lfc = mylfc, number = Inf)
 }
-dim(mycontMat)[2]
-topTable( myefit , coef=dim(mycontMat)[2]-7, adjust="BH", number = 200)
+names(list_TopTable_mylfc_n_pval) <- colnames(mycontMat )
 
-list_TopTable
+################################## 
+## writing down the results
+##################################
+for( k in 1:length(list_TopTable_mylfc_n_pval) ){
+  Name_of_theComparison <- str_replace_all( names(list_TopTable_mylfc_n_pval)[k], " ", "")
+  path_file <- paste0(Folder_to_save_results,"/",Label_for_yor_results,"_Contrast...",Name_of_theComparison,".tsv")
+    write.table( list_TopTable_mylfc_n_pval[[k]], file = path_file,  sep= "\t", quote=FALSE)
+} # Saving all the DEG table with the cut parameters given by the user
 
+path_RDS <-  paste0(Folder_to_save_results,"/",Label_for_yor_results,"_Contrast...all.rds")
+saveRDS(list_TopTable_mylfc_n_pval, file=path_RDS)
 
-topTable( myefit , coef=1, adjust="BH", number = 200)
-topTable( myefit , coef=2, adjust="BH", number = 200)
-topTable( myefit , coef=3, adjust="BH", number = 200)
-topTable( myefit , coef=4, adjust="BH", number = 10)
+##################################
+###### Including a Venn Diagram
+##################################
+decidemyefit <-decideTests(myefit)
+decidemyefit_2_plot <- decidemyefit[,1:5]
 
-
-
-# write.table
-
-#results <- decideTests(myefit)
-#vennDiagram(results)
-
-
-
-
-
-
-
-  
-
-
-
-
+path_2pdf <-  paste0(Folder_to_save_results,"/",Label_for_yor_results,"_VenDiagram.pdf")
+pdf(file=path_2pdf )
+vennDiagram(decidemyefit_2_plot)
+vennDiagram(decidemyefit_2_plot, 
+            include=c("up", "down"),
+            counts.col=c("red", "blue"),
+            circle.col = c("red", "blue", "green3"))
+dev.off()
