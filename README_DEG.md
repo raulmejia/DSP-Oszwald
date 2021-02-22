@@ -1,5 +1,8 @@
 
-| First Header  | Second Header |
-| ------------- | ------------- |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
+**Input**
+Tab separated matrix, rows = features, columns = samples
+
+|  | sample1 | sample2 |
+| ------------- | ------------- | ------------- |
+| feature A  | 5.5  | 0  |
+| feature B  | 0.12  | 2  |
