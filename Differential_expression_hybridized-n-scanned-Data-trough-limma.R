@@ -34,10 +34,6 @@ if (!require("gtools")) {
 }
 if (!require("tidyverse")) {
   install.packages("tidyverse", ask =FALSE)
-| First Header  | Second Header |
-| ------------- | ------------- |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
   library("tidyverse")
 }
 ########################################
