@@ -8,5 +8,6 @@ Tab separated matrix, rows = features, columns = samples
 | feature B  | 0.12  | 2  |
 
 
-’’’ ##ääßßß00090ß
 ```sample1  sample2   ```  
+```featureA 5.5 0```  
+```featureB 0.12  2```  
