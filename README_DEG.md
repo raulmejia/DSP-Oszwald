@@ -1,7 +1,7 @@
 
 
 
-**Input1: Expression matrix:**  
+**Input1: Expression_matrix:**  
 A tab separated matrix, rows = features, columns = samples
 
 |  | sample1 | sample2 | sample3 |
@@ -9,7 +9,7 @@ A tab separated matrix, rows = features, columns = samples
 | featureA  | 5.5  | 10  | 3  |
 | featureB  | 0.12  | 0  | 4  |
 
-**Input2: Annotation Table:**
+**Input2: Annotation_Table:**
 |  | some_annotation| your_col_label | another_annotation |
 | ------------- | ------------- | ------------- | ------------- |
 | sample1  | 5.5  | classA  | 3  |
