@@ -5,7 +5,7 @@
 ####    RNA program in https://github.com/raulmejia/DSP-Oszwald
 ####      
 ####     Input description:
-####        expression matrix: tab separated, rows = featrures, cols= sources/samples, there should not be colname over the first column(for the rownames)
+####        expression matrix: tab separated, rows = features, cols= sources/samples, there should not be colname over the first column(for the rownames)
 ####        annotdf: rows = cols from the expression matrix, you should provide the name of column that contain your labels
 ####    Author of the script: Raúl Mejía
 #### 
@@ -34,6 +34,10 @@ if (!require("gtools")) {
 }
 if (!require("tidyverse")) {
   install.packages("tidyverse", ask =FALSE)
+| First Header  | Second Header |
+| ------------- | ------------- |
+| Content Cell  | Content Cell  |
+| Content Cell  | Content Cell  |
   library("tidyverse")
 }
 ########################################
