@@ -1,8 +1,8 @@
 
 
 
-**Input1: Expression matrix:**
-Tab separated matrix, rows = features, columns = samples
+**Input1: Expression matrix:**  
+A tab separated matrix, rows = features, columns = samples
 
 |  | sample1 | sample2 | sample3 |
 | ------------- | ------------- | ------------- | ------------- |
