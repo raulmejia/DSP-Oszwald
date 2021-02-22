@@ -17,9 +17,7 @@ A tab separated table, with the same number of rows as columns in the Expression
 | sample2  | 0.12  | classB  | 4  |
 | sample3  | 0.12  | classA  | 4  |
 
-**Input3: code_path:**
-
-The path were the code where your script (and its libraries) is.
+**Input3:** "code_path" The path were the code where your script (and its libraries) is.
 
 **Input 4** is the path were your want to save the results.
 
