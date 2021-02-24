@@ -5,7 +5,7 @@
 ####    RNA program in https://github.com/raulmejia/DSP-Oszwald
 ####      
 ####     Input description:
-####        expression matrix: tab separated, rows = features, cols= sources/samples, there should not be colname over the first column(for the rownames)
+####        expression matrix: tab separated, rows = featrures, cols= sources/samples, there should not be colname over the first column(for the rownames)
 ####        annotdf: rows = cols from the expression matrix, you should provide the name of column that contain your labels
 ####    Author of the script: Raúl Mejía
 #### 
@@ -27,10 +27,6 @@ if (!require("BiocManager")) {
 if (!require("limma")) {
   BiocManager::install("limma", ask =FALSE)
   library("limma")
-}
-if (!require("gtools")) {
-  install.packages("gtools", ask =FALSE)
-  library("gtools")
 }
 if (!require("tidyverse")) {
   install.packages("tidyverse", ask =FALSE)
@@ -80,7 +76,7 @@ Folder_to_save_results <- normalizePath(Folder_to_save_results)
 ############################
 ###### Body
 #############################
-# reading the your matrices
+# reading your matrices
 
 myexpmat <- read.table( file= path_expression_matrix , sep="\t", header = TRUE, row.names = 1)
 annotdf <- read.table( file= path_annotation_table, sep="\t", header = TRUE, row.names = 1)
@@ -150,3 +146,4 @@ vennDiagram(decidemyefit_2_plot,
             counts.col=c("red", "blue"),
             circle.col = c("red", "blue", "green3"))
 dev.off()
+
