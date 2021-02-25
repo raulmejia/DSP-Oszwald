@@ -7,6 +7,11 @@
 ####     Input description:
 ####        expression matrix: tab separated, rows = featrures, cols= sources/samples, there should not be colname over the first column(for the rownames)
 ####        annotdf: rows = cols from the expression matrix, you should provide the name of column that contain your labels
+####                Try to use character labels and if you have a "reference class" you can name it "Control" (case insensitive) the contrasts
+####                against this category will be arranged properly and they will have priority
+####     Output:
+####        pdf, if your labels contain the word "Normal" (case insensitive) those graphs will be plotted first
+####
 ####    Author of the script: Raúl Mejía
 #### 
 ###################################
@@ -37,29 +42,32 @@ if (!require("tidyverse")) {
 #########################################
 myargs <- commandArgs(trailingOnly = TRUE)
 
-#path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/NucleiLog2_QnormBatchSep_combat_Prot_titleclean.txt"
+# path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/Prunned/ExpMat_from_the_fitting_of--NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--protein_annotation_Raul_20201211_odd_deleted.tsv"
 path_expression_matrix <- myargs[1]
 
-#path_annotation_table <-"/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/DSP_protein_annotation_Raul_20201211_odd_deleted.tsv"
+# path_annotation_table <-"/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/Prunned/Annot_table_from_the_fitting_of--NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--DSP_protein_annotation_Raul_20201211_odd_deleted_characters_instead_numbers.tsv"
 path_annotation_table <- myargs[2]
 
 # path_code <- "/media/rmejia/mountme88/code/DSP-Oszwald"
 path_code <- myargs[3] 
 
-Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Results/DEG/Protein/"
+# Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Results/DEG/Protein/"
 Folder_to_save_results <- myargs[4]
 
-#column_of_labels_in_the_annotdf <- "label" # name of the column in your annotation data frame that contains the labels
+# column_of_labels_in_the_annotdf <- "label" # name of the column in your annotation data frame that contains the labels
 column_of_labels_in_the_annotdf <- myargs[5]
 
-#mylfc = 0
+# mylfc = 0
 mylfc <- myargs[6]
 
-#myp.value = 0.05
+# myp.value = 0.05
 myp.value <- myargs[7]
 
-#Label_for_yor_results <- "Andre_GeoMx_Protein_DEG"
-Label_for_yor_results <- myargs[8]
+# number_of_sets_4_the_VennDiagram <- 5
+number_of_sets_4_the_VennDiagram <- myargs[8]
+
+# Label_for_yor_results <- "Andre_GeoMx_Protein_DEG"
+Label_for_yor_results <- myargs[9]
 
 
 ############################
@@ -72,38 +80,28 @@ source(load_myMakeContrasts)
 dir.create( Folder_to_save_results , recursive = TRUE)
 Folder_to_save_results <- normalizePath(Folder_to_save_results)
 
-
 ############################
 ###### Body
 #############################
 # reading your matrices
-
-myexpmat <- read.table( file= path_expression_matrix , sep="\t", header = TRUE, row.names = 1)
+myexpmat <- read.table( file= path_expression_matrix , sep="\t", header = TRUE, row.names = 1, check.names = FALSE)
 annotdf <- read.table( file= path_annotation_table, sep="\t", header = TRUE, row.names = 1)
 
-    # This chunk tries to match the intersection of your expression matrix and your annotation (maybe you can relocate it in an independet script)
-    # if you want to normalize
-    colnames_expmat_nomarlized <- str_remove(colnames(myexpmat),"^X") %>%  str_replace("a_","_") %>% str_replace("b_","_")# if a colname starts with a number R adds automatically an X
-    rownames_annodf_normalized <- str_replace(rownames(annotdf),"a_","_") %>%  str_replace("b_","_") # Those are unmeagniful elements 
-
-    positions_annot_in_expmat <- which( rownames_annodf_normalized %in% colnames_expmat_nomarlized)  # fitting annot_df to exp matrix
-    annotdf_fitted_2_expmat <- annotdf[positions_annot_in_expmat,]
-
-    positions_expmat_in_annot  <- which( colnames_expmat_nomarlized %in% rownames_annodf_normalized ) # fitting_exp to annot_df 
-    expmat_fitted_2_annot <- myexpmat[,positions_expmat_in_annot]
-    
-    print( paste0("your original expression matrix had: ", dim(myexpmat)[1]," features, and : ", dim(myexpmat)[2]," samples"))
-    print( paste0("your original annotation_table had: ", dim(annotdf)[1]," samples, and : ", dim(annotdf)[2]," columns"))
-    print("###")
-    print( paste0("after matching them your final expression matrix has: ", dim(expmat_fitted_2_annot)[1]," features, and : ", dim(expmat_fitted_2_annot)[2]," samples"))
-    print( paste0("after matching them your final annotation_table has: ", dim(annotdf_fitted_2_expmat)[1]," samples, and : ", dim(annotdf_fitted_2_expmat)[2]," columns"))
-    
+if( length(which( colnames(myexpmat)  %in% rownames(annotdf) )) != length(colnames(myexpmat))  ){
+  print("The number columns in your expmat is different than the rows in your Annotation Table")
+  quit()
+}
+if( length(which( colnames(myexpmat)  %in% rownames(annotdf) )) != length( rownames(annotdf) )  ){
+  print("The number columns in your expmat is different than the rows in your Annotation Table")
+  quit()
+}
+   
 # Desgin Matrix
-designmat <- model.matrix( ~0+  as.factor( annotdf_fitted_2_expmat [,column_of_labels_in_the_annotdf]) )
-    colnames(designmat) <- levels(as.factor( annotdf_fitted_2_expmat [,column_of_labels_in_the_annotdf] ))
+designmat <- model.matrix( ~0+  as.factor( annotdf [,column_of_labels_in_the_annotdf]) )
+    colnames(designmat) <- levels(as.factor( annotdf [,column_of_labels_in_the_annotdf] ))
    
 # Fitting the lineal model    
-myfit <- lmFit( expmat_fitted_2_annot , designmat  ) # fitting the linear model
+myfit <- lmFit( myexpmat, designmat  ) # fitting the linear model
 
 mycontMat <- mymakeContrasts(designmat) # make your matrix of contrasts
 
@@ -136,7 +134,18 @@ saveRDS(list_TopTable_mylfc_n_pval, file=path_RDS)
 ###### Including a Venn Diagram
 ##################################
 decidemyefit <-decideTests(myefit)
-decidemyefit_2_plot <- decidemyefit[,1:5]
+
+#Postions_of_colnames_containing_1 <- grep( "1", colnames(decidemyefit@.Data))
+#Positions_no_containing_1 <- setdiff( 1:length(colnames(decidemyefit@.Data)) , Postions_of_colnames_containing_1 )
+#col_order_priorizing_1 <- c( Postions_of_colnames_containing_1 , Positions_no_containing_1 )
+#decidemyefit@.Data <- decidemyefit@.Data[ , col_order_priorizing_1 ]
+
+#Postions_of_colnames_containing_Normal <- grep( "normal", colnames(decidemyefit@.Data), ignore.case = TRUE)
+#Positions_no_containing_Normal <- setdiff( 1:length(colnames(decidemyefit@.Data)) , Postions_of_colnames_containing_Normal )
+#col_order_priorizing_Normal <- c( Postions_of_colnames_containing_Normal , Positions_no_containing_Normal )
+#decidemyefit@.Data <- decidemyefit@.Data[ , col_order_priorizing_Normal ]
+
+decidemyefit_2_plot <- decidemyefit[ , 1:number_of_sets_4_the_VennDiagram]
 
 path_2pdf <-  paste0(Folder_to_save_results,"/",Label_for_yor_results,"_VenDiagram.pdf")
 pdf(file=path_2pdf )

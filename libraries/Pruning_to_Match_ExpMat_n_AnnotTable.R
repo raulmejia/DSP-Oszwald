@@ -1,16 +1,17 @@
 ###################################
 #### This script performs the sample´s intersection between an expression matrix and its annotation table. 
 ####    Inputs: an expression matrix and an annotation table. both in a tsv format (tab separated).
+####         Input description:
+####             expression matrix: tab separated, rows = featrures, cols= sources/samples, there should not be colname over the first column(for the rownames)
+####                Please try to avoid X in or number as the first character of your columns names, that doens´t like to R              
+####              annotdf: rows = cols from the expression matrix
 ####    Output: The program retrieves a subexpression matrix that only contains the common samples (in the columns)
 ####            likewise for samples (rows) in the the sub annotation matrix. the program shows the dimensions of 
 ####            the input and output data on the screen and save it in a file
-####     
+####    Example: Rscript /pathA/Pruning_to_Match_ExpMat_n_AnnotTable.R  /pathB/Input-myExpMAt /pathC/Input-AnnotTable /pathD/path_to_store_results /pathE/2Output-ExpMat /pathF/2Output-AnnotTable /pathG/2OutputStatistics
+####
 ####    Repository: https://github.com/raulmejia/DSP-Oszwald
 ####      
-####     Input description:
-####        expression matrix: tab separated, rows = featrures, cols= sources/samples, there should not be colname over the first column(for the rownames)
-####                Please try to avoid X in or number as the first character of your columns names, that doens´t like to R              
-####        annotdf: rows = cols from the expression matrix
 ####    Author of the script: Raúl Mejía
 #### 
 ###################################
@@ -46,13 +47,16 @@ path_annotation_table <- myargs[2]
 # Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/"
 Folder_to_save_results <- myargs[3]
 
-# label_for_the_result_expMat <- "ExpMat_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--protein_annotation_Raul_20201211_odd_deleted"
+# label_for_the_result_expMat <- "ExpMat_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--protein_annotation_Raul_20201211_odd_deleted.tsv"
 # Usually pasting the name of the expmat and annotTable is a good idea or adding the suffix "intersected"/"prunned to"/"fitted"
 label_for_the_result_expMat <- myargs[4]
 
-# label_for_the_result_AnnotTable <- "Annot_table_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--fitted2-DSP_protein_annotation_Raul_20201211_odd_deleted"
+# label_for_the_result_AnnotTable <- "Annot_table_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--fitted2-DSP_protein_annotation_Raul_20201211_odd_deleted.tsv"
 # Usually pasting the name of the expmat and annotTable is a good idea or adding the suffix "intersected"/"prunned to"/"fitted"
 label_for_the_result_AnnotTable <- myargs[5]
+
+# label_for_the_output_statistics <- "Output_statistics_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--fitted2-DSP_protein_annotation_Raul_20201211_odd_deleted.txt"
+label_for_the_output_statistics <- myargs[6]
 
 ############################
 ###### Basic Processing of data given by the user for example Paths
@@ -83,15 +87,16 @@ anntdf_intersected_rows <- input_annotdf[ positions_input_annotdf_in_expmat , ]
 ## writing down the results
 ##################################
 # Output expression file
-out_expmat_path <- paste0(  Folder_to_save_results, "/", label_for_the_result_expMat,".tsv")
+out_expmat_path <- paste0(  Folder_to_save_results, "/", label_for_the_result_expMat)
 write.table(  expmat_intersected_columns , file = out_expmat_path ,  sep= "\t", quote=FALSE)
 
 # Output Annotation file
-out_AnnotTable_path <- paste0(  Folder_to_save_results, "/", label_for_the_result_AnnotTable ,".tsv")
+out_AnnotTable_path <- paste0(  Folder_to_save_results, "/", label_for_the_result_AnnotTable)
 write.table(  anntdf_intersected_rows , file = out_AnnotTable_path ,  sep= "\t", quote=FALSE)
 
-# showing the original and final sizes as well as the differences
-sink( paste0( Folder_to_save_results ,"/","outputs_report.txt" )  )
+# Output Statistcs:  showing the original and final sizes as well as the differences
+OutStatistics_path <- paste0(  Folder_to_save_results, "/", label_for_the_output_statistics)
+sink( OutStatistics_path  )
 cat( "dimension of your input expression matrix: " )
 cat( dim( input_expmat ) )
 cat( "\n" )
