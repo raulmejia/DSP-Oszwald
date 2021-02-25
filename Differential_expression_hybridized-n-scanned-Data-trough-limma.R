@@ -14,6 +14,8 @@
 ####
 ####    Author of the script: Raúl Mejía
 #### 
+#### Pending decide if you want to change Normal by "Control" (or election of the user) I am thinking in the probably confusion
+####    With the normal-like subtype of breast cancer
 ###################################
 #### 0) loading and/or installing required libraries
 ###################################

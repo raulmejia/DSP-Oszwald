@@ -39,23 +39,29 @@ if (!require("tidyverse")) {
 myargs <- commandArgs(trailingOnly = TRUE)
 
 # path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/NucleiLog2_QnormBatchSep_combat_Prot_titleclean.txt"
+# path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/RNA/NucleiLog2_QnormBatchSep_combat_2.txt"
 path_expression_matrix <- myargs[1]
 
 # path_annotation_table <-"/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/DSP_protein_annotation_Raul_20201211_odd_deleted.tsv"
+# path_annotation_table <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/RNA/Final_annot_RNA_20201212_odd_deleted_characters_instead_numbers.tsv"
 path_annotation_table <- myargs[2]
 
 # Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/"
+# Folder_to_save_results <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/RNA/Prunned"
 Folder_to_save_results <- myargs[3]
 
 # label_for_the_result_expMat <- "ExpMat_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--protein_annotation_Raul_20201211_odd_deleted.tsv"
+# label_for_the_result_expMat <- "ExpMat_from_the_fitting_of--RNANucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--Final_annot_RNA_20201212_odd_deleted_characters_instead_numbers.tsv"
 # Usually pasting the name of the expmat and annotTable is a good idea or adding the suffix "intersected"/"prunned to"/"fitted"
 label_for_the_result_expMat <- myargs[4]
 
 # label_for_the_result_AnnotTable <- "Annot_table_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--fitted2-DSP_protein_annotation_Raul_20201211_odd_deleted.tsv"
+# label_for_the_result_AnnotTable <-  "Annot_table_from_the_fitting_of--RNANucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--Final_annot_RNA_20201212_odd_deleted_characters_instead_numbers.tsv"
 # Usually pasting the name of the expmat and annotTable is a good idea or adding the suffix "intersected"/"prunned to"/"fitted"
 label_for_the_result_AnnotTable <- myargs[5]
 
 # label_for_the_output_statistics <- "Output_statistics_from_the_fitting_of_NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--fitted2-DSP_protein_annotation_Raul_20201211_odd_deleted.txt"
+# label_for_the_output_statistics <- "Output_statistics_from_the_fitting_of_RNANucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--fitted2-Final_annot_RNA_20201212_odd_deleted_characters_instead_numbers.txt"
 label_for_the_output_statistics <- myargs[6]
 
 ############################
