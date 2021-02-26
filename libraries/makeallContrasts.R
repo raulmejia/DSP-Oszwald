@@ -8,7 +8,6 @@
 ######  will follow an alphabetical order.
 ##################################################################
 
-
 ########################################
 ##### required loading required packages 
 ########################################
@@ -17,12 +16,12 @@ if (!require("gtools")) {
   library("gtools")
 }
 
-
 #  design_input <- designmat
+# reference_category <- "normal"
 ##########################
 ##### Body
 ##########################
-mymakeContrasts <- function( design_input ){ 
+mymakeContrasts <- function( design_input , reference_category ){ 
   n = length( colnames(design_input) )
   ncols_contrast_mat = (n * (n-1)) /2  # total number of pairwise comparisons
   
@@ -36,8 +35,8 @@ mymakeContrasts <- function( design_input ){
     # locating the "normal" labels in the first column
     hold_it = vector()
         for( k in 1:dim(comb)[1] ){
-          if( any(grepl( "normal", comb[k,]  , ignore.case = TRUE))  ){ # Is there a "normal" label in this row?
-            if( grepl( "normal", comb[k,2]  , ignore.case = TRUE) ){ # Is the normal label in the second position? If so, let's swap the values
+          if( any(grepl( reference_category, comb[k,]  , ignore.case = TRUE))  ){ # Is there a "reference catergory" label in this row?
+            if( grepl( reference_category, comb[k,2]  , ignore.case = TRUE) ){ # Is the "reference catergory" label in the second position? If so, let's swap the values
               hold_it <- comb[k,]  
               comb[k,1] <- hold_it[2] 
               comb[k,2] <- hold_it[1] 
@@ -45,8 +44,8 @@ mymakeContrasts <- function( design_input ){
           }
         }
     
-    ########### rearrangement to place (if there is any) the label "Normal" at the first position
-    Postions_of_rownames_containing_Normal <- grep( "normal", comb[,1], ignore.case = TRUE) # locating "Normal" (case insensitive in the first position)
+    ########### rearrangement to place (if there is any) the label "reference catergory" at the first position
+    Postions_of_rownames_containing_Normal <- grep( reference_category, comb[,1], ignore.case = TRUE) # locating "reference catergory" (case insensitive in the first position)
     RowNames_Pos_no_containing_Normal <- setdiff( 1:length(comb[,1]) , Postions_of_rownames_containing_Normal )
     col_order_priorizing_Normal <- c( Postions_of_rownames_containing_Normal , RowNames_Pos_no_containing_Normal )
     comb <- comb[ col_order_priorizing_Normal, ]  

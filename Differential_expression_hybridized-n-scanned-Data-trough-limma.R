@@ -13,12 +13,14 @@
 ####        pdf, if your labels contain the word "Normal" (case insensitive) those graphs will be plotted first
 ####
 ####    Author of the script: Raúl Mejía
+####
+#### Example:
+####      Rscript /PathA/Differential_expression_hybridized-n-scanned-Data-trough-limma.R /PathB/ExpMat_Demo.tsv /PathC/Annot_table_Demo.tsv /Path/code-this-repository/ /Path/yourResults/ label normal 0 0.05 5 Label_4_your_results
 #### 
-#### Pending decide if you want to change Normal by "Control" (or election of the user) I am thinking in the probably confusion
-####    With the normal-like subtype of breast cancer
+####    
 ###################################
 #### 0) loading and/or installing required libraries
-###################################
+################################### 
 if (!require("argparse")) {
   install.packages("argparse", ask =FALSE)
   library("argparse")
@@ -59,17 +61,20 @@ Folder_to_save_results <- myargs[4]
 # column_of_labels_in_the_annotdf <- "label" # name of the column in your annotation data frame that contains the labels
 column_of_labels_in_the_annotdf <- myargs[5]
 
+#my_reference_category <- "normal"
+my_reference_category <- myargs[6]
+
 # mylfc = 0
-mylfc <- myargs[6]
+mylfc <- myargs[7]
 
 # myp.value = 0.05
-myp.value <- myargs[7]
+myp.value <- myargs[8]
 
 # number_of_sets_4_the_VennDiagram <- 5
-number_of_sets_4_the_VennDiagram <- myargs[8]
+number_of_sets_4_the_VennDiagram <- myargs[9]
 
 # Label_for_yor_results <- "Andre_GeoMx_Protein_DEG"
-Label_for_yor_results <- myargs[9]
+Label_for_yor_results <- myargs[10]
 
 
 ############################
@@ -105,7 +110,7 @@ designmat <- model.matrix( ~0+  as.factor( annotdf [,column_of_labels_in_the_ann
 # Fitting the lineal model    
 myfit <- lmFit( myexpmat, designmat  ) # fitting the linear model
 
-mycontMat <- mymakeContrasts(designmat) # make your matrix of contrasts
+mycontMat <- mymakeContrasts(designmat , my_reference_category) # make your matrix of contrasts
 
 myfit2 <- contrasts.fit( myfit, mycontMat)
 myefit <- eBayes(myfit2) # moderate standard errors of the estimated log-fold changes
@@ -136,16 +141,6 @@ saveRDS(list_TopTable_mylfc_n_pval, file=path_RDS)
 ###### Including a Venn Diagram
 ##################################
 decidemyefit <-decideTests(myefit)
-
-#Postions_of_colnames_containing_1 <- grep( "1", colnames(decidemyefit@.Data))
-#Positions_no_containing_1 <- setdiff( 1:length(colnames(decidemyefit@.Data)) , Postions_of_colnames_containing_1 )
-#col_order_priorizing_1 <- c( Postions_of_colnames_containing_1 , Positions_no_containing_1 )
-#decidemyefit@.Data <- decidemyefit@.Data[ , col_order_priorizing_1 ]
-
-#Postions_of_colnames_containing_Normal <- grep( "normal", colnames(decidemyefit@.Data), ignore.case = TRUE)
-#Positions_no_containing_Normal <- setdiff( 1:length(colnames(decidemyefit@.Data)) , Postions_of_colnames_containing_Normal )
-#col_order_priorizing_Normal <- c( Postions_of_colnames_containing_Normal , Positions_no_containing_Normal )
-#decidemyefit@.Data <- decidemyefit@.Data[ , col_order_priorizing_Normal ]
 
 decidemyefit_2_plot <- decidemyefit[ , 1:number_of_sets_4_the_VennDiagram]
 

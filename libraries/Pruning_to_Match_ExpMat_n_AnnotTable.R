@@ -13,7 +13,9 @@
 ####    Repository: https://github.com/raulmejia/DSP-Oszwald
 ####      
 ####    Author of the script: Raúl Mejía
-#### 
+####  Annot_table_
+####  path_annotation_table <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/RNA/Final_annot_RNA_20201212_odd_deleted.tsv"
+####      Maybe you can produce the outpus under this formar = "ExpMat_from_the_fitting_of--",basename?InputExpMat,","--n--",basename?InputDF,".tsv"
 ###################################
 #### 0) loading and/or installing required libraries
 ###################################
