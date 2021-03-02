@@ -46,7 +46,7 @@ if (!require("tidyverse")) {
 #########################################
 myargs <- commandArgs(trailingOnly = TRUE)
 
-# path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/Prunned/ExpMat_from_the_fitting_of--NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--protein_annotation_Raul_20201211_odd_deleted.tsv"
+# path_expression_matrix <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/Prunned/ExpMat_from_the_fitting_of--NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--DSP_protein_annotation_Raul_20201211_odd_deleted_characters_instead_numbers.tsv"
 path_expression_matrix <- myargs[1]
 
 # path_annotation_table <-"/media/rmejia/mountme88/Projects/DSP/Data/Data_sent_by_DrAO_2020_12_11/Protein/Prunned/Annot_table_from_the_fitting_of--NucleiLog2_QnormBatchSep_combat_Prot_titleclean--n--DSP_protein_annotation_Raul_20201211_odd_deleted_characters_instead_numbers.tsv"
@@ -61,7 +61,7 @@ Folder_to_save_results <- myargs[4]
 # column_of_labels_in_the_annotdf <- "label" # name of the column in your annotation data frame that contains the labels
 column_of_labels_in_the_annotdf <- myargs[5]
 
-#my_reference_category <- "normal"
+# my_reference_category <- "normal"
 my_reference_category <- myargs[6]
 
 # mylfc = 0
@@ -81,8 +81,8 @@ Label_for_yor_results <- myargs[10]
 ###### Basic Processing of data given by the user for example Paths
 ############################
 path_code <- normalizePath( path_code )
-load_myMakeContrasts <- paste0(path_code,"/","libraries/makeallContrasts.R")
-source(load_myMakeContrasts)
+path_2_load_myMakeContrasts <- paste0( path_code,"/","libraries/makeallContrasts.R" )
+source( path_2_load_myMakeContrasts )
 
 dir.create( Folder_to_save_results , recursive = TRUE)
 Folder_to_save_results <- normalizePath(Folder_to_save_results)
@@ -124,13 +124,17 @@ for(k in 2:dim(mycontMat)[2]){
   list_TopTable_mylfc_n_pval[[k]] <- topTable( myefit , coef=k, adjust="BH", p.value = myp.value, lfc = mylfc, number = Inf)
 }
 names(list_TopTable_mylfc_n_pval) <- colnames(mycontMat )
-
+#print(list_TopTable_mylfc_n_pval[[2]])
 ################################## 
 ## writing down the results
 ##################################
 for( k in 1:length(list_TopTable_mylfc_n_pval) ){
   Name_of_theComparison <- str_replace_all( names(list_TopTable_mylfc_n_pval)[k], " ", "")
   path_file <- paste0(Folder_to_save_results,"/",Label_for_yor_results,"_Contrast...",Name_of_theComparison,".tsv")
+    print( names( list_TopTable_mylfc_n_pval)[k] )
+    #print( list_TopTable_mylfc_n_pval[[k]])
+    #print( "\n")
+    #print( "\n")
     write.table( list_TopTable_mylfc_n_pval[[k]], file = path_file,  sep= "\t", quote=FALSE)
 } # Saving all the DEG table with the cut parameters given by the user
 
