@@ -6,6 +6,6 @@ The master script is named "DSP_Orchester.R" this program was intented to coordi
 
 The particular script to perform differential expression on data from hybridization is named **"Differential_expression_hybridized-n-scanned-Data-trough-limma.R"** [here](https://github.com/raulmejia/DSP-Oszwald/blob/master/README_DEG.md) a description how to use it. [here](https://github.com/raulmejia/DSP-Oszwald/blob/master/DemoData) demo data to try it out.
 
-The are other useful scripts like "Update KEGG"
+The are other useful scripts like "UptodateKEGG"
 
 
